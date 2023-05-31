@@ -37,6 +37,7 @@ class AddMaterial:
         # Separating variables.
         E_t = self.E_vector[0]
         E_c = self.E_vector[1]
+        G = self.G_vector
 
         # Appending to .csv.
 
