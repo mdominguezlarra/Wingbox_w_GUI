@@ -69,6 +69,3 @@ class WingSec(GeomBase):
 if __name__ == '__main__':
     from parapy.gui import display
     display(WingSec())
-
-
-

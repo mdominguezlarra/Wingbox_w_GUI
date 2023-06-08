@@ -46,11 +46,10 @@ class FlightCondition(Base):
 
         # flight params: weight [kg], speed [m/s], height [m], temperature [K], pressure [Pa],
         #                density [kg/m3], sound speed [m/s], viscosity [kg/ms],
-        #                kinematic viscosity [m2/s], units
-
-        flight_params = [self.weight, self.speed] + atmos_vector + [self.units]
-        print(flight_params)
+        #                kinematic viscosity [m2/s], Mach, units
+        flight_params = [self.weight, self.speed] + atmos_vector + [self.speed/atmos_vector[4], self.units]
         return flight_params
+
 
 if __name__ == '__main__':
     from parapy.gui import display

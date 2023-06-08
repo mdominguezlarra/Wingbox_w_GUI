@@ -53,14 +53,39 @@ class WingGeom(GeomBase):
     ])
 
     @Attribute
-    def mac(self):
-
-        return
-
-    @Attribute
     def planform_area(self):
 
-        return
+        s = 0
+        for i in range(len(self.spans)-1):
+            cr = self.root_chord*self.tapers[i]
+            tap = self.tapers[i+1]/self.tapers[i]
+            b = self.spans[i+1] - self.spans[i]
+            s = s + cr*(1+tap)*b
+
+        return s
+
+    @Attribute
+    def mac(self):
+
+        s = self.planform_area
+        c_int = 0
+        for i in range(len(self.spans)-1):
+            cr = self.root_chord*self.tapers[i]
+            tap = self.tapers[i+1]/self.tapers[i]
+            b = self.spans[i+1] - self.spans[i]
+            c_int = c_int + b/3*cr**2*(tap**2 + tap + 1)
+
+        mac = 2/s*c_int
+        return mac
+
+    # @Attribute
+    # def c_4mac(self):
+    #
+    #     mac_ = self.mac/self.root_chord
+    #     for i in range(len(frac_span)):
+    #         diff[i] = abs(np.ones((1, len(frac_span))) * frac_span[i] - airfoil_distribution)
+    #
+    #     return c_4mac
 
     @Attribute
     def airfoil_guides(self):
@@ -192,7 +217,7 @@ class WingGeom(GeomBase):
 
     @Part
     def surf_section(self):
-        return LoftedShell(quantify=len(self.profile_order)-1,
+        return LoftedShell(quantify=len(self.profile_order[0])-1,
                            profiles=self.profile_order[0][child.index:child.index+2],
                            mesh_deflection=1e-4,
                            hidden=True)
@@ -212,7 +237,7 @@ class WingGeom(GeomBase):
 
     @Part
     def avl_sections(self):
-        return avl.SectionFromCurve(quantify=len(self.profile_order[0]),
+        return avl.SectionFromCurve(quantify=len(self.profile_order[0]),            # It looks weird on the display
                                     curve_in=self.profile_order[0][child.index])
 
     @Part
@@ -224,17 +249,6 @@ class WingGeom(GeomBase):
                            span_spacing=avl.Spacing.cosine,
                            y_duplicate=self.position.point[1],  # Always mirrored. self.is_mirrored does not appear
                            sections=self.avl_sections)          # curvature; flat: sections=self.profile_order[1])
-
-    @Part
-    def avl_configuration(self):
-        return avl.Configuration(name='aircraft',
-                                 reference_area=self.planform_area,
-                                 reference_span=self.spans[-1]*2,
-                                 reference_chord=self.mac,
-                                 reference_point=self.position.point,
-                                 surfaces=self.avl_surface,
-                                 mach=0.6)
-
 
 
 if __name__ == '__main__':
