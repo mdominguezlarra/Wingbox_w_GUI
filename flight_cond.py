@@ -18,11 +18,12 @@ class FlightCondition(Base):
             return
 
         # Conversion constants from imperial to SI. Order constructed according to the flight_params vector below.
-        conv_cnsts = [0.453592, 0.3048, 0.3048, np.NaN, 47.8803, 515.379, 0.3048, 4.8445e-5, 0.3048**2]
+        conv_cnsts = [0.453592, 0.3048, 0.3048, np.NaN, 47.8803, 515.379, 0.3048, 14.5939/0.3048, 0.3048**2]
 
         # Table values are in imperial units.
         atmos_matrix = np.genfromtxt('inputs/atmos_params.csv', delimiter=',', dtype=float, skip_header=True)
-        atmos_matrix[:, 0] *= 1e3
+        atmos_matrix[:, 0] *= 1e3  # Converting from flight level to height.
+        atmos_matrix[:, 8] *= 1e-6  # Converting from 10^(-6) slug/ft.s to slug/ft.s
 
         # Linearly interpolating the values.
         atmos_vector = []
@@ -37,16 +38,16 @@ class FlightCondition(Base):
         if self.units == 'SI':
             for i in range(len(atmos_vector)):
                 if i == 1:
-                    atmos_vector[i] = (atmos_vector[i]) * 5 / 9         # - 491.67 for C
+                    atmos_vector[i] = (atmos_vector[i]) * 5/9         # - 491.67 for C
                 else:
-                    atmos_vector[i] = atmos_vector[i] * conv_cnsts[i+2]
+                    atmos_vector[i] = atmos_vector[i] * conv_cnsts[i + 2]
         else:
-            self.weight = self.weight*conv_cnsts[0]
-            self.speed = self.weight*conv_cnsts[1]
+            self.weight = self.weight/conv_cnsts[0]
+            self.speed = self.weight/conv_cnsts[1]
 
-        # flight params: weight [kg], speed [m/s], height [m], temperature [K], pressure [Pa],
-        #                density [kg/m3], sound speed [m/s], viscosity [kg/ms],
-        #                kinematic viscosity [m2/s], units
+        # flight params: weight [kg/lbm], speed [(m/s)/(ft/s)], height [m/ft], temperature [K/ºR],
+        #                pressure [Pa/(lbf/ft^2)], density [(kg/m3)/(slug/ft^3)], speed of sound [(m/s)/(ft/s)],
+        #                viscosity [(kg/m.s)/(slug/ft.s)], kinematic viscosity [(m^2/s)/(ft^2/s)], units
 
         flight_params = [self.weight, self.speed] + atmos_vector + [self.units]
         print(flight_params)
