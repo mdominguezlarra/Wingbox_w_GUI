@@ -18,8 +18,7 @@ class FlightCondition(Base):
             return
 
         # Conversion constants from imperial to SI. Order constructed according to the flight_params vector below.
-        conv_cnsts = [0.453592, 0.3048, 0.3048, np.NaN, 0.0208854, 47.8803, 515.378818, 0.3048,
-                      14.5939 / 0.3048, 0.3048 ** 2]
+        conv_cnsts = [0.453592, 0.3048, 0.3048, np.NaN, 47.8803, 515.379, 0.3048, 4.8445e-5, 0.3048**2]
 
         # Table values are in imperial units.
         atmos_matrix = np.genfromtxt('inputs/atmos_params.csv', delimiter=',', dtype=float, skip_header=True)
@@ -38,12 +37,21 @@ class FlightCondition(Base):
         if self.units == 'SI':
             for i in range(len(atmos_vector)):
                 if i == 1:
-                    atmos_vector[i] = (atmos_vector[i] - 491.67) * 5 / 9
+                    atmos_vector[i] = (atmos_vector[i]) * 5 / 9         # - 491.67 for C
                 else:
-                    atmos_vector[i] *= conv_cnsts[i + 2]
+                    atmos_vector[i] = atmos_vector[i] * conv_cnsts[i+2]
         else:
-            self.weight /= conv_cnsts[0]
-            self.speed /= conv_cnsts[1]
+            self.weight = self.weight*conv_cnsts[0]
+            self.speed = self.weight*conv_cnsts[1]
+
+        # flight params: weight [kg], speed [m/s], height [m], temperature [K], pressure [Pa],
+        #                density [kg/m3], sound speed [m/s], viscosity [kg/ms],
+        #                kinematic viscosity [m2/s], units
 
         flight_params = [self.weight, self.speed] + atmos_vector + [self.units]
+        print(flight_params)
         return flight_params
+
+if __name__ == '__main__':
+    from parapy.gui import display
+    display(FlightCondition())

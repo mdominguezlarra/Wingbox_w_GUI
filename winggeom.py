@@ -5,6 +5,7 @@ from airfoil import Airfoil
 from curvedraw import CurveDraw
 import numpy as np
 import cst
+from kbeutils import avl
 
 
 def intersection_airfoil(span_distribution, airfoil_distribution):
@@ -50,6 +51,16 @@ class WingGeom(GeomBase):
         'rae5215',
         'rae5215'
     ])
+
+    @Attribute
+    def mac(self):
+
+        return
+
+    @Attribute
+    def planform_area(self):
+
+        return
 
     @Attribute
     def airfoil_guides(self):
@@ -105,17 +116,21 @@ class WingGeom(GeomBase):
         sorted_indices = sorted(range(len(stations)), key=lambda k: stations[k])
 
         airfoils = []
+        guides = []
         for i in range(len(self.airfoils)):
             airfoils.append(self.airfoils[i])
-
+            guides.append(self.airfoil_chords[i])
         for i in range(len(self.inter_airfoils)):
             airfoils.append(self.inter_airfoils[i])
+            guides.append(self.wiresec[i].sec_chords_out)
 
         order = []
+        guides_order = []
         for i in range(len(airfoils)):
             order.append(airfoils[sorted_indices[i]].scaled_foil)
+            guides_order.append(guides[sorted_indices[i]])
 
-        return order
+        return order, guides_order
 
     @Part
     def wiresec(self):
@@ -144,7 +159,8 @@ class WingGeom(GeomBase):
     @Part
     def airfoil_chords(self):
         return ComposedCurve(quantify=len(self.airfoil_sections),
-                             built_from=self.airfoil_guides[child.index])
+                             built_from=self.airfoil_guides[child.index],
+                             line_thickness=2)
 
     @Part
     def airfoil_unscaled(self):
@@ -174,10 +190,10 @@ class WingGeom(GeomBase):
                        airfoil_direction=self.wiresec[child.index].sec_chords_out.direction_vector,
                        airfoil_chord=self.wiresec[child.index].sec_chords_out.length)
 
-    @Part # Very ugly leading edge. what can be done then?
+    @Part
     def surf_section(self):
         return LoftedShell(quantify=len(self.profile_order)-1,
-                           profiles=self.profile_order[child.index:child.index+2],
+                           profiles=self.profile_order[0][child.index:child.index+2],
                            mesh_deflection=1e-4,
                            hidden=True)
 
@@ -193,6 +209,32 @@ class WingGeom(GeomBase):
                              vector1=Vector(1, 0, 0),
                              vector2=Vector(0, 0, 1),
                              mesh_deflection=1e-4,)
+
+    @Part
+    def avl_sections(self):
+        return avl.SectionFromCurve(quantify=len(self.profile_order[0]),
+                                    curve_in=self.profile_order[0][child.index])
+
+    @Part
+    def avl_surface(self):
+        return avl.Surface(name='Wing',
+                           n_chordwise=12,
+                           chord_spacing=avl.Spacing.cosine,
+                           n_spanwise=20,
+                           span_spacing=avl.Spacing.cosine,
+                           y_duplicate=self.position.point[1],  # Always mirrored. self.is_mirrored does not appear
+                           sections=self.avl_sections)          # curvature; flat: sections=self.profile_order[1])
+
+    @Part
+    def avl_configuration(self):
+        return avl.Configuration(name='aircraft',
+                                 reference_area=self.planform_area,
+                                 reference_span=self.spans[-1]*2,
+                                 reference_chord=self.mac,
+                                 reference_point=self.position.point,
+                                 surfaces=self.avl_surface,
+                                 mach=0.6)
+
 
 
 if __name__ == '__main__':

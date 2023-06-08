@@ -11,7 +11,7 @@ class WingSec(GeomBase):
     sweep = Input(30)        # deg
     dihedral = Input(5)      # deg
     incidence = Input(0)     # deg
-    twist = Input(-2)        # deg (include type of distribution?, measured at c/4, with respect to incidence)
+    twist = Input(-2)        # deg (include type of distribution?, measured at c/4, with respect to the horizontal)
 
     @Attribute
     def get_pts(self):
@@ -51,13 +51,15 @@ class WingSec(GeomBase):
                        self.span*np.tan(np.deg2rad(self.dihedral)))
         return self.position + newor
 
-    @Part
-    def sec_chords_in(self):
-        return LineSegment(self.get_pts[0][0], self.get_pts[0][3])
+    # @Part # DO NOT DELETE UNTIL SUBMISSION
+    # def sec_chords_in(self):
+    #     return LineSegment(self.get_pts[0][0], self.get_pts[0][3])
 
     @Part
     def sec_chords_out(self):
-        return LineSegment(self.get_pts[0][1], self.get_pts[0][2])
+        return LineSegment(start=self.get_pts[0][1],
+                           end=self.get_pts[0][2],
+                           line_thickness=2)
 
     @Part
     def sec_plane(self):

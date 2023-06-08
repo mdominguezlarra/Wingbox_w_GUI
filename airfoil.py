@@ -7,7 +7,7 @@ class Airfoil(GeomBase, Base):
 
     # The KBEutils could be used for an alternative way to produce airfoils
 
-    airfoil_curve = Input()   # The airfoils must be checked
+    airfoil_curve = Input()
     airfoil_start = Input(Point(1, 5, 0.5))
     airfoil_direction = Input(Vector(0.95, 0, -0.3))
     airfoil_chord = Input(2)
