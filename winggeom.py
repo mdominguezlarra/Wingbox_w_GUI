@@ -25,7 +25,6 @@ def intersection_airfoil(span_distribution, airfoil_distribution):
             idx.append(sorted_indices[:2])
             span_sec.append(frac_span[i])
 
-
     inter = inter[:p]
     return inter, idx, p, span_sec
 
@@ -34,7 +33,7 @@ class WingGeom(GeomBase):
 
     # All of the following inputs should be read from a file
     # For 1st section
-    root_chord = Input(5)
+    root_chord = Input(7)
 
     # For the rest (I have a doubt, how will we solve if the number of inputs is not coherent??)
     spans = Input([0, 8, 13, 16])           # m. wrt the root position
@@ -47,9 +46,9 @@ class WingGeom(GeomBase):
     airfoil_sections = Input([0, 0.3, 0.7, 1])
     airfoil_names = Input([
         'rae5212',
+        'rae5212',
         'rae5215',
-        'whitcomb',
-        'NACA23012'
+        'rae5215'
     ])
 
     @Attribute
@@ -89,8 +88,8 @@ class WingGeom(GeomBase):
             y_u = cst.cst(x_i, cst_u)
             y_l = cst.cst(x_i, cst_l)
 
-            x = np.concatenate((x_i, np.flip(x_i)))
-            y = np.concatenate((y_u, np.flip(y_l)))
+            x = np.concatenate((np.flip(x_i), x_i))
+            y = np.concatenate((np.flip(y_l), y_u))
 
             points = []
             for j in range(len(x)):
@@ -114,7 +113,7 @@ class WingGeom(GeomBase):
 
         order = []
         for i in range(len(airfoils)):
-            order.append(airfoils[sorted_indices[i]])
+            order.append(airfoils[sorted_indices[i]].scaled_foil)
 
         return order
 
@@ -175,9 +174,25 @@ class WingGeom(GeomBase):
                        airfoil_direction=self.wiresec[child.index].sec_chords_out.direction_vector,
                        airfoil_chord=self.wiresec[child.index].sec_chords_out.length)
 
+    @Part # Very ugly leading edge. what can be done then?
+    def surf_section(self):
+        return LoftedShell(quantify=len(self.profile_order)-1,
+                           profiles=self.profile_order[child.index:child.index+2],
+                           mesh_deflection=1e-4,
+                           hidden=True)
+
     @Part
     def right_wing(self):
-        return LoftedSurface(profiles=self.profile_order)
+        return SewnShell(self.surf_section,
+                         mesh_deflection=1e-4,)
+
+    @Part
+    def left_wing(self):
+        return MirroredShape(shape_in=self.right_wing,
+                             reference_point=XOY,
+                             vector1=Vector(1, 0, 0),
+                             vector2=Vector(0, 0, 1),
+                             mesh_deflection=1e-4,)
 
 
 if __name__ == '__main__':
