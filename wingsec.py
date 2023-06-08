@@ -12,11 +12,10 @@ class WingSec(GeomBase):
     dihedral = Input(5)      # deg
     incidence = Input(0)     # deg
     twist = Input(-2)        # deg (include type of distribution?, measured at c/4, with respect to incidence)
-    position = Input(Point(5,0,0))
 
     @Attribute
     def get_pts(self):
-        """ This function gets the points that define the section planform """
+        """ This function gets the points and lines that define the section planform """
         pt1 = Vector(0,
                      0,
                      0.25*np.sin(np.deg2rad(self.incidence))*self.root_chord)
@@ -38,7 +37,12 @@ class WingSec(GeomBase):
                self.position + pt3,
                self.position + pt4]
 
-        return pts
+        lns = [LineSegment(pts[0], pts[1]),
+               LineSegment(pts[1], pts[2]),
+               LineSegment(pts[2], pts[3]),
+               LineSegment(pts[3], pts[0])]
+
+        return pts, lns
 
     @Attribute
     def nextorigin(self):
@@ -46,9 +50,18 @@ class WingSec(GeomBase):
                        self.span,
                        self.span*np.tan(np.deg2rad(self.dihedral)))
         return self.position + newor
+
     @Part
-    def sec_skeleton(self):
-        return Polygon(points=self.get_pts)
+    def sec_chords_in(self):
+        return LineSegment(self.get_pts[0][0], self.get_pts[0][3])
+
+    @Part
+    def sec_chords_out(self):
+        return LineSegment(self.get_pts[0][1], self.get_pts[0][2])
+
+    @Part
+    def sec_plane(self):
+        return FilledSurface(self.get_pts[1])
 
 
 if __name__ == '__main__':
