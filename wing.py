@@ -16,10 +16,10 @@ class Wing(GeomBase):
     height = Input(1000)    # ft.
 
     # LOAD CASES
-    case_settings = Input([('fixed_aoa', {'alpha': 3}),
-                           ('fixed_cl', {'alpha': avl.Parameter(name='alpha',
-                                                                value=0.3,
-                                                                setting='CL')})])
+    case_settings = Input([('fixed_aoa', {'alpha': 3})]) #[('fixed_aoa', {'alpha': 3})])
+                         #  ('fixed_cl', {'alpha': avl.Parameter(name='alpha',
+                         #                                        value=0.3,
+                         #                                        setting='CL')})])
 
     # WING GEOMETRY
     # For 1st section
@@ -57,8 +57,9 @@ class Wing(GeomBase):
                                  reference_area=self.wing_geom.planform_area,
                                  reference_span=self.wing_geom.spans[-1]*2,
                                  reference_chord=self.wing_geom.mac,
-                                 reference_point=self.wing_geom.position.point,     # use quarter chord MAC?
-                                 surfaces=self.wing_geom.avl_surface,
+                                 reference_point=self.position.point,            #PLACEHOLDER self.wing_geom.position.point,
+                                                                                # use quarter chord MAC?
+                                 surfaces=[self.wing_geom.avl_surface],
                                  mach=self.flight_con.atmos_calc[9])
 
     @Part

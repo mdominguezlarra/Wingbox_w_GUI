@@ -248,7 +248,8 @@ class WingGeom(GeomBase):
                            n_spanwise=20,
                            span_spacing=avl.Spacing.cosine,
                            y_duplicate=self.position.point[1],  # Always mirrored. self.is_mirrored does not appear
-                           sections=self.avl_sections)          # curvature; flat: sections=self.profile_order[1])
+                           sections=self.avl_sections)          # curvature: self.avl_sections);
+                                                                # flat: sections=self.profile_order[1])
 
 
 if __name__ == '__main__':
