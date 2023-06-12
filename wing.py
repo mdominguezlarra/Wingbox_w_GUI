@@ -1,6 +1,7 @@
 from parapy.core import *
 from parapy.geom import *
 from winggeom import WingGeom
+from wingbox import WingBox
 from flight_cond import FlightCondition
 from avl_analysis import AvlAnalysis
 from kbeutils import avl
@@ -41,6 +42,11 @@ class Wing(GeomBase):
         'rae5215'
     ])
 
+    # STRUCTURAL DETAILS
+    # Ribs
+    rib_pitch = Input(1)
+    rib_thickness = Input(3)                # mm
+
     @Part
     def wing_geom(self):
         return WingGeom(pass_down=['root_chord', 'spans', 'tapers',
@@ -65,6 +71,14 @@ class Wing(GeomBase):
     def analysis(self):
         return AvlAnalysis(wing=self,
                            case_settings=self.case_settings)
+
+    # THIS IS THE WINGBOX ASSEMBLY, ALL COMPONENTS SHOULD GO INSIDE IT
+    # ADD INPUTS AS THEY BECOME NECESSARY
+    @Part
+    def wingbox(self):
+        return WingBox(wing=self.wing_geom,
+                       rib_pitch=self.rib_pitch,
+                       rib_thickness=self.rib_thickness)
 
 
 if __name__ == '__main__':

@@ -6,7 +6,7 @@ from kbeutils.geom.curve import Naca4AirfoilCurve, Naca5AirfoilCurve
 
 
 class CurveDraw(GeomBase):
-    # The KBEutils could be used for an alternative way to produce airfoils
+
 
     airfoil_name = Input('NACA23012')
 
@@ -55,7 +55,8 @@ class CurveDraw(GeomBase):
 
     @Part
     def non_naca(self):
-        return FittedCurve(points=self.pts[0])
+        return FittedCurve(points=self.pts[0],
+                           hidden=True)
 
 
     @Part
