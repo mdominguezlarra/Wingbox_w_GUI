@@ -2,12 +2,14 @@ from parapy.core import *
 from parapy.geom import *
 import cst
 import numpy as np
+from kbeutils.geom.curve import Naca4AirfoilCurve, Naca5AirfoilCurve
 
 
 class CurveDraw(GeomBase):
     # The KBEutils could be used for an alternative way to produce airfoils
 
     airfoil_name = Input('NACA23012')
+
 
     @Attribute
     def pts(self):
@@ -44,10 +46,31 @@ class CurveDraw(GeomBase):
         return coeff_u, coeff_l
 
     @Part
-    def foil_curve(self):
+    def naca_airfoil(self):
+        return DynamicType(type=Naca5AirfoilCurve if len(self.airfoil_name) == 5
+        else Naca4AirfoilCurve,
+                           designation=self.airfoil_name,
+                           mesh_deflection=0.00001,
+                           hidden=True)
+
+    @Part
+    def non_naca(self):
         return FittedCurve(points=self.pts[0])
+
+
+    @Part
+    def foil_curve(self):
+        return ScaledCurve(curve_in=self.naca_airfoil if (self.airfoil_name.isnumeric() and
+                                                          (len(self.airfoil_name) == 5 or
+                                                          len(self.airfoil_name) == 4)) else self.non_naca,
+                           reference_point=self.position.point,
+                           factor=1,
+                           mesh_deflection=0.00001)
 
 
 if __name__ == '__main__':
     from parapy.gui import display
-    display(CurveDraw())
+    eyo = 'rae5212'
+    print(eyo.isnumeric() and (len(eyo) == 5 or len(eyo) == 4))
+    display(CurveDraw(airfoil_name=eyo))
+
