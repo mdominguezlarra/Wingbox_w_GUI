@@ -26,6 +26,8 @@ class WingBox(GeomBase):
             r_span = []
             for i in range(n_r):
                 r_span.append(i*self.rib_pitch)
+            n_r = n_r + 1
+            r_span.append(self.wing.spans[-1])
 
         else:
             print('Place other distribution indices')
@@ -45,8 +47,8 @@ class WingBox(GeomBase):
     @Part
     def spars(self):
         return SparSystem(front_spar_loc=self.front_spar_loc,
-                          rear_spar_loc=self.rear_spar_loc)
-
+                          rear_spar_loc=self.rear_spar_loc,
+                          wing=self.wing)
 
     @Part
     def skin(self):

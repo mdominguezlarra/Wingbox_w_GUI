@@ -8,15 +8,15 @@ import numpy as np
 class SparSystem(GeomBase):
     front_spar_loc = Input([0.25, 0.25, 0.25, 0.25, 0.25, 0.25])
     rear_spar_loc = Input([0.75, 0.75, 0.75, 0.75, 0.75, 0.75])
+    wing = Input()
 
     # Retrieving wing information.
     @Attribute
     def wingInfo(self):
 
         # Retrieving needed attributes.
-        wing = WingGeom()
-        unscaled_airfoils = wing.profile_order[2]
-        scaled_airfoils = wing.profile_order[0]
+        unscaled_airfoils = self.wing.profile_order[2]
+        scaled_airfoils = self.wing.profile_order[0]
 
         starting_points = []
         chords = []
@@ -24,7 +24,7 @@ class SparSystem(GeomBase):
             starting_points.append(airfoil.airfoil_start)
             chords.append(airfoil.airfoil_chord)
 
-        return starting_points, chords, scaled_airfoils, wing
+        return starting_points, chords, scaled_airfoils
 
     # Defining airfoils as surfaces to cut.
     @Part
@@ -46,7 +46,7 @@ class SparSystem(GeomBase):
     def airfoil_wires(self):
         return IntersectedShapes(quantify=len(self.airfoil_planes_translated),
                                  shape_in=self.airfoil_planes_translated[child.index],
-                                 tool=self.wingInfo[3].right_wing,
+                                 tool=self.wing.right_wing,
                                  hidden=True)
 
     @Part
