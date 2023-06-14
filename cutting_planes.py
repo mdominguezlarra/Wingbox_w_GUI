@@ -4,10 +4,11 @@ import numpy as np
 
 
 class CuttingPlanes(GeomBase):
-    direction = Input('chordwise')  # or 'chordwise'
+    direction = Input('spanwise')  # or 'chordwise'
     starting_point = Input(Point(2, 0, 0))
-    chord_length = Input(1)
-    chord_percentage = Input(0.25)
+    chord_length = Input(3)
+    chord_percentage = Input(0.5)
+    chord_direction = Input(Vector(1, 0, 0))
 
     @Input
     def base_plane_rotate(self):
@@ -34,8 +35,8 @@ class CuttingPlanes(GeomBase):
     @Part
     def plane_final_pos(self):
         return TranslatedSurface(surface_in=self.to_starting_point,
-                                 displacement=Vector(self.chord_length * self.chord_percentage, 0, 0),
-                                 hidden=False)
+                                 displacement=self.chord_length * self.chord_percentage*self.chord_direction,
+                                 hidden=True)
 
 
 if __name__ == '__main__':

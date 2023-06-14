@@ -2,13 +2,12 @@ from parapy.core import *
 from parapy.geom import *
 from rib import Rib
 from sparsystem import SparSystem
-#from skin import Skin
 
 
 class WingBox(GeomBase):
 
     # Geometry
-    wing = Input(in_tree=True)
+    wing = Input()
 
     # Ribs
     rib_pitch = Input(0.2)
@@ -53,7 +52,8 @@ class WingBox(GeomBase):
     @Part
     def skin(self):
         return SewnShell(self.wing.right_wing,
-                         mesh_deflection=1e-4)
+                         mesh_deflection=1e-4,
+                         transparency=0.7)
 
 
 if __name__ == '__main__':

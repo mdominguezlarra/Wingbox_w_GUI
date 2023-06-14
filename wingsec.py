@@ -16,21 +16,24 @@ class WingSec(GeomBase):
     @Attribute
     def get_pts(self):
         """ This function gets the points and lines that define the section planform """
-        pt1 = Vector(0,
+        pt1 = Vector(0.25*self.root_chord*(1-np.cos(np.deg2rad(self.incidence))),
                      0,
-                     0.25*np.sin(np.deg2rad(self.incidence))*self.root_chord)
-        pt2 = Vector(self.span*np.tan(np.deg2rad(self.sweep)),
+                     0.25*self.root_chord*np.sin(np.deg2rad(self.incidence)))
+        pt2 = Vector(self.span*np.tan(np.deg2rad(self.sweep))
+                     + 0.25*self.root_chord*self.taper*(1-np.cos(np.deg2rad(self.twist))),
                      self.span,
                      self.span*np.tan(np.deg2rad(self.dihedral))
-                     + 0.25*np.sin(np.deg2rad(self.twist))*self.root_chord*self.taper)
+                     + 0.25*self.root_chord*self.taper*np.sin(np.deg2rad(self.twist)))
         pt3 = Vector(self.span*np.tan(np.deg2rad(self.sweep))
-                     + self.root_chord*self.taper,
+                     + self.root_chord*self.taper
+                     - 0.75*self.root_chord*self.taper*(1-np.cos(np.deg2rad(self.twist))),
                      self.span,
                      self.span*np.tan(np.deg2rad(self.dihedral))
-                     - 0.75*np.sin(np.deg2rad(self.twist)*self.root_chord*self.taper))
-        pt4 = Vector(self.root_chord,
+                     - 0.75*self.root_chord*self.taper*np.sin(np.deg2rad(self.twist)))
+        pt4 = Vector(self.root_chord
+                     - 0.75*self.root_chord*(1-np.cos(np.deg2rad(self.incidence))),
                      0,
-                     - 0.75*np.sin(np.deg2rad(self.incidence))*self.root_chord)
+                     - 0.75*self.root_chord*np.sin(np.deg2rad(self.incidence)))
 
         pts = [self.position + pt1,
                self.position + pt2,
