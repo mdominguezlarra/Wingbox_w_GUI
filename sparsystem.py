@@ -54,7 +54,7 @@ class SparSystem(GeomBase):
         return TrimmedSurface(quantify=len(self.airfoil_wires),
                               built_from=self.airfoil_planes_translated[child.index],
                               island=self.airfoil_wires[child.index].edges[0],
-                              hidden=False)
+                              hidden=True)
 
     # Front spar web definition.
     # Defining planes perpendicular to airfoils.
