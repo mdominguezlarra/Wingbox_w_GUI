@@ -1,14 +1,14 @@
 from parapy.core import *
 from parapy.geom import *
 from singlespar import SingleSpar
+from cutting_planes import CuttingPlanes
 from winggeom import WingGeom
-import numpy as np
 
 
 class SparSystem(GeomBase):
     front_spar_loc = Input([0.25, 0.25, 0.25, 0.25, 0.25, 0.25])
     rear_spar_loc = Input([0.75, 0.75, 0.75, 0.75, 0.75, 0.75])
-    wing = Input()
+    wing = Input(WingGeom())
 
     # Retrieving wing information.
     @Attribute
@@ -29,64 +29,39 @@ class SparSystem(GeomBase):
     # Defining airfoils as surfaces to cut.
     @Part
     def airfoil_planes(self):
-        return RectangularSurface(quantify=len(self.front_spar_planes),
-                                  width=100,
-                                  length=100,
-                                  position=rotate90(self.position, 'x'),
-                                  hidden=True)
-
-    @Part
-    def airfoil_planes_translated(self):
-        return TranslatedSurface(quantify=len(self.airfoil_planes),
-                                 surface_in=self.airfoil_planes[child.index],
-                                 displacement=self.wingInfo[0][child.index].vector,
-                                 hidden=True)
+        return CuttingPlanes(quantify=len(self.front_spar_planes),
+                             direction='chordwise',
+                             starting_point=self.wingInfo[0][child.index])
 
     @Part
     def airfoil_wires(self):
-        return IntersectedShapes(quantify=len(self.airfoil_planes_translated),
-                                 shape_in=self.airfoil_planes_translated[child.index],
+        return IntersectedShapes(quantify=len(self.airfoil_planes),
+                                 shape_in=self.airfoil_planes[child.index].plane_final_pos,
                                  tool=self.wing.right_wing,
                                  hidden=True)
 
     @Part
     def airfoils_as_shapes(self):
         return TrimmedSurface(quantify=len(self.airfoil_wires),
-                              built_from=self.airfoil_planes_translated[child.index],
+                              built_from=self.airfoil_planes[child.index].plane_final_pos,
                               island=self.airfoil_wires[child.index].edges[0],
-                              hidden=True)
+                              hidden=False)
 
     # Front spar web definition.
-    # Defining planes perpendicular to airfoils.
-    @Part
-    def front_spar_planes_rotated(self):
-        return RectangularSurface(quantify=len(self.wingInfo[0]),
-                                  width=10,
-                                  length=10,
-                                  position=rotate(self.position, 'y', 90 * np.pi/180),
-                                  hidden=True)
-
-    @Part
-    def front_spar_planes_1st_translation(self):
-        return TranslatedSurface(quantify=len(self.front_spar_planes_rotated),
-                                 surface_in=self.front_spar_planes_rotated[child.index],
-                                 displacement=self.wingInfo[0][child.index].vector,
-                                 hidden=True)
-
     @Part
     def front_spar_planes(self):
-        return TranslatedSurface(quantify=len(self.front_spar_planes_1st_translation),
-                                 surface_in=self.front_spar_planes_1st_translation[child.index],
-                                 displacement=Vector(self.front_spar_loc[child.index] * self.wingInfo[1][child.index],
-                                                     0, 0),
-                                 hidden=True)
+        return CuttingPlanes(quantify=len(self.wingInfo[0]),
+                             direction='spanwise',
+                             starting_point=self.wingInfo[0][child.index],
+                             chord_length=self.wingInfo[1][child.index],
+                             chord_percentage=self.front_spar_loc[child.index])
 
     # Intersections and web definitions.
     @Attribute
     def front_spar_intersecs(self):
         intersections = []
         for i in range(len(self.front_spar_planes)):
-            edg = IntersectedShapes(shape_in=self.front_spar_planes[i],
+            edg = IntersectedShapes(shape_in=self.front_spar_planes[i].plane_final_pos,
                                     tool=self.airfoils_as_shapes[i],
                                     hidden=True)
             intersections.append(edg.edges)
@@ -101,25 +76,24 @@ class SparSystem(GeomBase):
 
     @Part
     def front_spar_web(self):
-        return SingleSpar(quantify=len(self.front_spar_intersecs)-1,
+        return SingleSpar(quantify=len(self.front_spar_intersecs) - 1,
                           curves=[self.front_spar_intersec_curves[child.index],
-                                  self.front_spar_intersec_curves[child.index+1]])
-
+                                  self.front_spar_intersec_curves[child.index + 1]])
 
     # Same process is made for the rear spar.
     @Part
     def rear_spar_planes(self):
-        return TranslatedSurface(quantify=len(self.front_spar_planes_1st_translation),
-                                 surface_in=self.front_spar_planes_1st_translation[child.index],
-                                 displacement=Vector(self.rear_spar_loc[child.index] * self.wingInfo[1][child.index],
-                                                     0, 0),
-                                 hidden=True)
+        return CuttingPlanes(quantify=len(self.wingInfo[0]),
+                             direction='spanwise',
+                             starting_point=self.wingInfo[0][child.index],
+                             chord_length=self.wingInfo[1][child.index],
+                             chord_percentage=self.rear_spar_loc[child.index])
 
     @Attribute
     def rear_spar_intersecs(self):
         intersections = []
         for i in range(len(self.rear_spar_planes)):
-            edg = IntersectedShapes(shape_in=self.rear_spar_planes[i],
+            edg = IntersectedShapes(shape_in=self.rear_spar_planes[i].plane_final_pos,
                                     tool=self.airfoils_as_shapes[i])
             intersections.append(edg.edges)
 
@@ -140,4 +114,5 @@ class SparSystem(GeomBase):
 
 if __name__ == '__main__':
     from parapy.gui import display
+
     display(SparSystem())
