@@ -16,7 +16,6 @@ class SparSystem(GeomBase):
 
         # Retrieving needed attributes.
         unscaled_airfoils = self.wing.profile_order[2]
-        scaled_airfoils = self.wing.profile_order[0]
 
         starting_points = []
         chords = []
@@ -24,14 +23,15 @@ class SparSystem(GeomBase):
             starting_points.append(airfoil.airfoil_start)
             chords.append(airfoil.airfoil_chord)
 
-        return starting_points, chords, scaled_airfoils
+        return starting_points, chords
 
     # Defining airfoils as surfaces to cut.
     @Part
     def airfoil_planes(self):
         return CuttingPlanes(quantify=len(self.front_spar_planes),
                              direction='chordwise',
-                             starting_point=self.wingInfo[0][child.index])
+                             starting_point=self.wingInfo[0][child.index],
+                             hidden=True)
 
     @Part
     def airfoil_wires(self):
@@ -45,7 +45,7 @@ class SparSystem(GeomBase):
         return TrimmedSurface(quantify=len(self.airfoil_wires),
                               built_from=self.airfoil_planes[child.index].plane_final_pos,
                               island=self.airfoil_wires[child.index].edges[0],
-                              hidden=False)
+                              hidden=True)
 
     # Front spar web definition.
     @Part
@@ -53,8 +53,9 @@ class SparSystem(GeomBase):
         return CuttingPlanes(quantify=len(self.wingInfo[0]),
                              direction='spanwise',
                              starting_point=self.wingInfo[0][child.index],
-                             chord_length=self.wingInfo[1][child.index],
-                             chord_percentage=self.front_spar_loc[child.index])
+                             starting_chord_length=self.wingInfo[1][child.index],
+                             chord_percentage=self.front_spar_loc[child.index],
+                             hidden=True)
 
     # Intersections and web definitions.
     @Attribute
@@ -86,8 +87,9 @@ class SparSystem(GeomBase):
         return CuttingPlanes(quantify=len(self.wingInfo[0]),
                              direction='spanwise',
                              starting_point=self.wingInfo[0][child.index],
-                             chord_length=self.wingInfo[1][child.index],
-                             chord_percentage=self.rear_spar_loc[child.index])
+                             starting_chord_length=self.wingInfo[1][child.index],
+                             chord_percentage=self.rear_spar_loc[child.index],
+                             hidden=True)
 
     @Attribute
     def rear_spar_intersecs(self):
