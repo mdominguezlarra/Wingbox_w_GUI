@@ -2,6 +2,7 @@ from parapy.core import *
 from parapy.geom import *
 from rib import Rib
 from sparsystem import SparSystem
+from skin import Skin
 
 
 class WingBox(GeomBase):
@@ -45,6 +46,10 @@ class WingBox(GeomBase):
     def spars(self):
         return SparSystem(front_spar_loc=self.front_spar_loc,
                           rear_spar_loc=self.rear_spar_loc)
+
+    @Part
+    def skin(self):
+        return Skin()
 
 
 if __name__ == '__main__':
