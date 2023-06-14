@@ -149,13 +149,15 @@ class WingGeom(GeomBase):
             airfoils.append(self.inter_airfoils[i])
             guides.append(self.wiresec[i].sec_chords_out)
 
-        order = []
+        unscaled_order = []
+        scaled_order = []
         guides_order = []
         for i in range(len(airfoils)):
-            order.append(airfoils[sorted_indices[i]].scaled_foil)
+            unscaled_order.append(airfoils[sorted_indices[i]])
+            scaled_order.append(airfoils[sorted_indices[i]].scaled_foil)
             guides_order.append(guides[sorted_indices[i]])
 
-        return order, guides_order
+        return scaled_order, guides_order, unscaled_order
 
     @Part
     def wiresec(self):
@@ -220,7 +222,7 @@ class WingGeom(GeomBase):
         return LoftedShell(quantify=len(self.profile_order[0])-1,
                            profiles=self.profile_order[0][child.index:child.index+2],
                            mesh_deflection=1e-4,
-                           hidden=True)
+                           hidden=False)
 
     @Part
     def right_wing(self):
