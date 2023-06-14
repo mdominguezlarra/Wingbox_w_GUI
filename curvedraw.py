@@ -56,7 +56,6 @@ class CurveDraw(GeomBase):
             x_lst = self.pts[1]
             y_lst = self.pts[2]
 
-        print(x_lst[0:i])
         coeff_u = list(cst.fit(x_lst[0:i],
                                y_lst[0:i],
                                8)[0])

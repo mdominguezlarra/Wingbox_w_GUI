@@ -162,13 +162,9 @@ class WingGeom(GeomBase):
             airfoils.append(self.inter_airfoils[i])
             guides.append(self.wiresec[i].sec_chords_out)
 
-        unscaled_order = []
-        scaled_order = []
-        guides_order = []
-        for i in range(len(airfoils)):
-            unscaled_order.append(airfoils[sorted_indices[i]])
-            scaled_order.append(airfoils[sorted_indices[i]].scaled_foil)
-            guides_order.append(guides[sorted_indices[i]])
+        unscaled_order = [airfoils[i] for i in sorted_indices]
+        scaled_order = [airfoils[i].scaled_foil for i in sorted_indices]
+        guides_order = [guides[i] for i in sorted_indices]
 
         return scaled_order, guides_order, unscaled_order
 
