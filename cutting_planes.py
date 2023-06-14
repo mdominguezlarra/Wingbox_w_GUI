@@ -40,8 +40,9 @@ class CuttingPlanes(GeomBase):
         y_line = y1 - y0
         rot_angle = np.arctan(x_line/y_line)
         rot_point = Point(x0, y0, 0)
+        rot_len = np.hypot(x_line, y_line)
 
-        return rot_angle, rot_point
+        return rot_angle, rot_point, rot_len
 
     @Part
     def base_plane(self):
@@ -70,6 +71,18 @@ class CuttingPlanes(GeomBase):
                               vector=self.rot_direction,
                               hidden=False)
 
+    @Part
+    def plane_final_scale(self):
+        return ScaledSurface(factor=self.spanwise_rot[2]/100,
+                             reference_point=self.spanwise_rot[1],
+                             surface_in=self.plane_final_rot)
+
+    @Part
+    def plane_final_transl(self):
+        return TranslatedSurface(surface_in=self.plane_final_scale,
+                                 displacement=Vector(self.spanwise_rot[2]/2 * np.sin(self.spanwise_rot[0]),
+                                                     self.spanwise_rot[2]/2 * np.cos(self.spanwise_rot[0]),
+                                                     0))
 
 if __name__ == '__main__':
     from parapy.gui import display
