@@ -50,8 +50,8 @@ class WingBox(GeomBase):
 
     @Part
     def skin(self):
-        return Shell(self.wing.right_wing,
-                     mesh_deflection=1e-4)
+        return SewnShell(self.wing.right_wing,
+                         mesh_deflection=1e-4)
 
 
 if __name__ == '__main__':
