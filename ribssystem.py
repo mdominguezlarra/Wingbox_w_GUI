@@ -37,22 +37,24 @@ class RibsSystem(GeomBase):
     @Attribute
     def cut_plane_idx(self):
         cut_plane_idx = 0
-        cut_plane_lst = []
         disp_accum = 0
         ribs_idx = 0
-        num_cutting_planes = len(self.cutting_TE_planes)
-        num_ribs = len(self.ribs_list)
+        cut_plane_lst = []
 
-        for i in range(num_cutting_planes):
+        for i in range(len(self.cutting_TE_planes)):
             cut_plane_idx_old = cut_plane_idx
-            for j in range(num_ribs):
-                if self.ribs_list[j].cog[1] > self.cutting_TE_planes[i].plane_final_transl.displacement[1] * 2 + disp_accum:
+            for j in range(len(self.ribs_list)):
+                if self.ribs_list[j].cog[1] > \
+                        round(self.cutting_TE_planes[i].plane_final_transl.displacement[1], 2) * 2 + disp_accum:
                     disp_accum += self.cutting_TE_planes[i].plane_final_transl.displacement[1] * 2
                     cut_plane_idx += 1
                     ribs_idx = j
 
                 if cut_plane_idx == cut_plane_idx_old and j >= ribs_idx:
                     cut_plane_lst.append(cut_plane_idx)
+
+        print(cut_plane_lst)
+        print(len(cut_plane_lst))
 
         return cut_plane_lst
 
@@ -80,7 +82,7 @@ class RibsSystem(GeomBase):
                    rib_thickness=self.rib_thickness,
                    skin_shell=self.wing.right_wing,
                    root_chord=self.wing.root_chord,
-                   hidden=True)
+                   hidden=False)
 
     @Part
     def cutting_TE_planes(self):
@@ -91,14 +93,14 @@ class RibsSystem(GeomBase):
                              chord_percentage=self.TE_gap,
                              ending_point=self.airfoils_TE_cut[child.index + 1].airfoil_start,
                              ending_chord_length=self.airfoils_TE_cut[child.index + 1].airfoil_chord,
-                             hidden=True)
+                             hidden=False)
 
     @Part
     def ribs_cut_basis(self):
         return SplitSurface(quantify=len(self.ribs_list),
                             built_from=self.ribs_list[child.index],
                             tool=self.cutting_TE_planes[self.cut_plane_idx[child.index]].plane_final_transl,
-                            hidden=True)
+                            hidden=False)
 
     @Part
     def rib_cut_wires(self):
