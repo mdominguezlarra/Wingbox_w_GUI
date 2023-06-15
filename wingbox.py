@@ -26,19 +26,22 @@ class WingBox(GeomBase):
 
     @Part
     def skin(self):
-        return SkinSystem(TE_gap=self.TE_skin_gap)
+        return SkinSystem(TE_gap=self.TE_skin_gap,
+                          wing=self.wing)
 
     @Part
     def spars(self):
         return SparSystem(front_spar_loc=self.front_spar_loc,
-                          rear_spar_loc=self.rear_spar_loc)
+                          rear_spar_loc=self.rear_spar_loc,
+                          wing=self.wing)
 
     @Part
     def ribs(self):
         return RibsSystem(rib_pitch=self.rib_pitch,
                           rib_thickness=self.rib_thickness,
                           rib_index=self.rib_index,
-                          TE_gap=self.TE_ribs_gap)
+                          TE_gap=self.TE_ribs_gap,
+                          wing=self.wing)
 
 
 if __name__ == '__main__':
