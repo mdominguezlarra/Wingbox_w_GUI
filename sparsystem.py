@@ -10,28 +10,12 @@ class SparSystem(GeomBase):
     rear_spar_loc = Input([0.75, 0.75, 0.75, 0.75, 0.75, 0.75])
     wing = Input(WingGeom())
 
-    # Retrieving wing information.
-    @Attribute
-    def wingInfo(self):
-
-        # Retrieving needed attributes.
-        unscaled_airfoils = self.wing.profile_order[2]
-
-        starting_points = []
-        chords = []
-        for airfoil in unscaled_airfoils:
-            starting_points.append(airfoil.airfoil_start)
-            chords.append(airfoil.airfoil_chord)
-
-        return starting_points, chords
-
     # Defining airfoils as surfaces to cut.
     @Part
     def airfoil_planes(self):
         return CuttingPlanes(quantify=len(self.front_spar_planes),
                              direction='chordwise',
-                             starting_point=self.wingInfo[0][child.index],
-                             hidden=True)
+                             starting_point=self.wing.profile_order[2][child.index].airfoil_start)
 
     @Part
     def airfoil_wires(self):
@@ -50,12 +34,12 @@ class SparSystem(GeomBase):
     # Front spar web definition.
     @Part
     def front_spar_planes(self):
-        return CuttingPlanes(quantify=len(self.wingInfo[0]),
+        return CuttingPlanes(quantify=len(self.wing.profile_order[2]),
                              direction='spanwise',
-                             starting_point=self.wingInfo[0][child.index],
-                             starting_chord_length=self.wingInfo[1][child.index],
+                             starting_point=self.wing.profile_order[2][child.index].airfoil_start,
+                             chord_length=self.wing.profile_order[2][child.index].airfoil_chord,
                              chord_percentage=self.front_spar_loc[child.index],
-                             hidden=True)
+                             chord_direction=self.wing.profile_order[2][child.index].airfoil_direction)
 
     # Intersections and web definitions.
     @Attribute
@@ -84,12 +68,12 @@ class SparSystem(GeomBase):
     # Same process is made for the rear spar.
     @Part
     def rear_spar_planes(self):
-        return CuttingPlanes(quantify=len(self.wingInfo[0]),
+        return CuttingPlanes(quantify=len(self.wing.profile_order[2]),
                              direction='spanwise',
-                             starting_point=self.wingInfo[0][child.index],
-                             starting_chord_length=self.wingInfo[1][child.index],
+                             starting_point=self.wing.profile_order[2][child.index].airfoil_start,
+                             chord_length=self.wing.profile_order[2][child.index].airfoil_chord,
                              chord_percentage=self.rear_spar_loc[child.index],
-                             hidden=True)
+                             chord_direction=self.wing.profile_order[2][child.index].airfoil_direction)
 
     @Attribute
     def rear_spar_intersecs(self):

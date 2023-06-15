@@ -1,5 +1,7 @@
 from parapy.core import *
 from parapy.geom import *
+from parapy.geom.occ import SewnShell
+
 from wingsec import WingSec
 from airfoil import Airfoil
 from curvedraw import CurveDraw
@@ -11,23 +13,27 @@ from kbeutils import avl
 def intersection_airfoil(span_distribution, airfoil_distribution):
     frac_span = np.array(span_distribution) / span_distribution[-1]
 
-    diff = np.ones((len(airfoil_distribution), len(airfoil_distribution)))
-    inter = np.ones((len(airfoil_distribution), len(airfoil_distribution)))
+    diff = np.ones((len(span_distribution), len(airfoil_distribution)))
+    inter = np.ones((len(span_distribution), len(airfoil_distribution)+1))
 
     p = 0
     idx = []
     span_sec = []
+    secs = []
     for i in range(len(frac_span)):
-        diff[i] = abs(np.ones((1, len(frac_span))) * frac_span[i] - airfoil_distribution)
+        diff[i] = np.ones((1, len(airfoil_distribution))) * frac_span[i] - airfoil_distribution
         if 0 not in diff[i]:
-            inter[p] = diff[i]
-            p = p + 1
-            sorted_indices = sorted(range(len(inter[p])), key=lambda k: inter[p][k])
-            idx.append(sorted_indices[:2])
+            inter[p, :-1] = diff[i]
+            inter[p, -1] = 0
+            sorted_indices = np.argsort(inter[p])
+            pos = np.where(sorted_indices == len(airfoil_distribution))[0][0]
+            idx.append([sorted_indices[pos-1], sorted_indices[pos+1]])
             span_sec.append(frac_span[i])
+            secs.append(i-1)
+            p = p + 1
 
-    inter = inter[:p]
-    return inter, idx, p, span_sec
+    inter = inter[:p, :-1]
+    return inter, idx, p, span_sec, secs
 
 
 class WingGeom(GeomBase):
@@ -47,8 +53,8 @@ class WingGeom(GeomBase):
     airfoil_sections = Input([0, 0.3, 0.7, 1])
     airfoil_names = Input([
         'rae5212',
-        'rae5212',
-        'rae5215',
+        '23014',
+        '22013',
         'rae5215'
     ])
 
@@ -90,37 +96,43 @@ class WingGeom(GeomBase):
     @Attribute
     def airfoil_guides(self):
         edges = []
-        for i in range(len(self.airfoil_sections)):
-            for j in range(len(self.spans)-1):
+        for j in range(len(self.spans)-1):
+            for i in range(len(self.airfoil_sections)):
                 edg = IntersectedShapes(
                     shape_in=self.airfoil_planes[i],
                     tool=self.wiresec[j].sec_plane)
                 edges.append(edg.edges)
 
         edges = list(filter(None, edges))
-        return edges
+        edges_clean = []
+
+        for i in range(len(edges)):
+            if edges[i][0].start.x != edges[i-1][0].start.x:
+                edges_clean.append(edges[i])
+
+        return edges_clean
 
     @Attribute
     def airfoil_interp(self):
-        coeff_u = np.zeros((len(self.airfoil_sections), 5))
-        coeff_l = np.zeros((len(self.airfoil_sections), 5))
+        coeff_u = np.zeros((len(self.airfoil_sections), 8))
+        coeff_l = np.zeros((len(self.airfoil_sections), 8))
         for i in range(len(self.airfoil_sections)):
-            coeff_u[i] = self.airfoil_unscaled[i].cst[0][0]
-            coeff_l[i] = self.airfoil_unscaled[i].cst[1][0]
+            coeff_u[i] = self.airfoil_unscaled[i].cst[0]
+            coeff_l[i] = self.airfoil_unscaled[i].cst[1]
 
-        inter, idx, p, s_span = intersection_airfoil(self.spans, self.airfoil_sections)
+        inter, idx, p, s_span, secs = intersection_airfoil(self.spans, self.airfoil_sections)
 
         # Linear interpolation
         airfoils = []
         for i in range(p):
-            d_1 = inter[i, idx[i][0]]
+            d_1 = -inter[i, idx[i][0]]
             d_2 = inter[i, idx[i][1]]
             d_t = d_1 + d_2
 
             cst_u = d_1/d_t * coeff_u[idx[i][0], :] + d_2/d_t * coeff_u[idx[i][1], :]
             cst_l = d_1/d_t * coeff_l[idx[i][0], :] + d_2/d_t * coeff_l[idx[i][1], :]
 
-            x_i = np.linspace(0, 1, 30)
+            x_i = np.linspace(0, 1, 40)
             y_u = cst.cst(x_i, cst_u)
             y_l = cst.cst(x_i, cst_l)
 
@@ -132,11 +144,12 @@ class WingGeom(GeomBase):
                 points.append(Point(x[j], 0, y[j]))
 
             airfoils.append(points)
-        return airfoils
+
+        return airfoils, secs
 
     @Attribute
     def profile_order(self):
-        inter, idx, p, s_span = intersection_airfoil(self.spans, self.airfoil_sections)
+        inter, idx, p, s_span, secs = intersection_airfoil(self.spans, self.airfoil_sections)
         stations = self.airfoil_sections + s_span
         sorted_indices = sorted(range(len(stations)), key=lambda k: stations[k])
 
@@ -149,13 +162,9 @@ class WingGeom(GeomBase):
             airfoils.append(self.inter_airfoils[i])
             guides.append(self.wiresec[i].sec_chords_out)
 
-        unscaled_order = []
-        scaled_order = []
-        guides_order = []
-        for i in range(len(airfoils)):
-            unscaled_order.append(airfoils[sorted_indices[i]])
-            scaled_order.append(airfoils[sorted_indices[i]].scaled_foil)
-            guides_order.append(guides[sorted_indices[i]])
+        unscaled_order = [airfoils[i] for i in sorted_indices]
+        scaled_order = [airfoils[i].scaled_foil for i in sorted_indices]
+        guides_order = [guides[i] for i in sorted_indices]
 
         return scaled_order, guides_order, unscaled_order
 
@@ -185,7 +194,7 @@ class WingGeom(GeomBase):
 
     @Part
     def airfoil_chords(self):
-        return ComposedCurve(quantify=len(self.airfoil_sections),
+        return ComposedCurve(quantify=len(self.airfoil_guides),
                              built_from=self.airfoil_guides[child.index],
                              line_thickness=2)
 
@@ -193,13 +202,13 @@ class WingGeom(GeomBase):
     def airfoil_unscaled(self):
         return CurveDraw(quantify=len(self.airfoil_sections),
                          airfoil_name=self.airfoil_names[child.index],
-                         hidden=True)
+                         hidden=False)
 
     @Part
     def airfoil_interp_unscaled(self):
-        return FittedCurve(quantify=len(self.airfoil_interp),
-                           points=self.airfoil_interp[child.index],
-                           hidden=True)
+        return FittedCurve(quantify=len(self.airfoil_interp[1]),
+                           points=self.airfoil_interp[0][child.index],
+                           hidden=False)
 
     @Part
     def airfoils(self):
@@ -211,11 +220,11 @@ class WingGeom(GeomBase):
 
     @Part
     def inter_airfoils(self):
-        return Airfoil(quantify=len(self.airfoil_interp),
+        return Airfoil(quantify=len(self.airfoil_interp[1]),
                        airfoil_curve=self.airfoil_interp_unscaled[child.index],
-                       airfoil_start=self.wiresec[child.index].sec_chords_out.start.location,
-                       airfoil_direction=self.wiresec[child.index].sec_chords_out.direction_vector,
-                       airfoil_chord=self.wiresec[child.index].sec_chords_out.length)
+                       airfoil_start=self.wiresec[self.airfoil_interp[1][child.index]].sec_chords_out.start.location,
+                       airfoil_direction=self.wiresec[self.airfoil_interp[1][child.index]].sec_chords_out.direction_vector,
+                       airfoil_chord=self.wiresec[self.airfoil_interp[1][child.index]].sec_chords_out.length)
 
     @Part
     def surf_section(self):
@@ -252,6 +261,21 @@ class WingGeom(GeomBase):
                            y_duplicate=self.position.point[1],  # Always mirrored. self.is_mirrored does not appear
                            sections=self.avl_sections)          # curvature: self.avl_sections);
                                                                 # flat: sections=self.profile_order[1])
+
+    # TESTS: ERASE WHEN DONE
+
+    @Part
+    def test(self):
+        return SplitCurve(curve_in=self.airfoils[0].scaled_foil,
+                          tool=[0.25, 0.5, 0.75],
+                          mesh_deflection=1e-4)
+
+    @Part
+    def test2(self):
+        return Wire(quantify=len(self.test.curves_in),
+                    curves_in=[self.test.curves_in[child.index]])
+
+
 
 
 if __name__ == '__main__':

@@ -4,7 +4,7 @@ import numpy as np
 
 
 class CuttingPlanes(GeomBase):
-    direction = Input('chordwise')  # or 'spanwise'
+    direction = Input('spanwise')  # or 'chordwise'
     starting_point = Input(Point(2, 0, 0))
     starting_chord_length = Input(1)  # Only used if plane is spanwise or if it follows TE.
 
@@ -60,7 +60,7 @@ class CuttingPlanes(GeomBase):
     @Part
     def plane_final_pos(self):
         return TranslatedSurface(surface_in=self.to_starting_point,
-                                 displacement=Vector(self.starting_chord_length * self.chord_percentage, 0, 0),
+                                 displacement=self.chord_length * self.chord_percentage * self.chord_direction,
                                  hidden=True)
 
     @Part
@@ -86,4 +86,5 @@ class CuttingPlanes(GeomBase):
 
 if __name__ == '__main__':
     from parapy.gui import display
-    display(CuttingPlanes(direction='spanwise'))
+
+    display(CuttingPlanes())

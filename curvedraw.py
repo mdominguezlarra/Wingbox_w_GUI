@@ -7,9 +7,7 @@ from kbeutils.geom.curve import Naca4AirfoilCurve, Naca5AirfoilCurve
 
 class CurveDraw(GeomBase):
 
-
-    airfoil_name = Input('NACA23012')
-
+    airfoil_name = Input('23014')
 
     @Attribute
     def pts(self):
@@ -18,6 +16,7 @@ class CurveDraw(GeomBase):
 
         # A warning of "airfoil not found" could be used here?/wrong order/format
         # SELIG FORMAT AIRFOILS NEED TO BE USED
+
         name = 'airfoils/' + self.airfoil_name + '.dat'
         file = np.loadtxt(name)
         points = []
@@ -34,15 +33,36 @@ class CurveDraw(GeomBase):
     @Attribute
     def cst(self):
 
-        i = int(len(self.pts[1])/2-0.5)
+        if (self.airfoil_name.isnumeric()
+                and (len(self.airfoil_name) == 5 or
+                     len(self.airfoil_name) == 4)):
 
-        coeff_u = cst.fit(self.pts[1][0:i],
-                          self.pts[2][0:i],
-                          5)
+            x_lst = [1.1]
+            y_lst = []
+            i = 1
 
-        coeff_l = cst.fit(self.pts[1][i:-1],
-                          self.pts[2][i:-1],
-                          5)
+            for j in self.naca_airfoil.points:
+                if j.x >= 0:
+                    x_lst.append(j.x)
+                    y_lst.append(j.z)
+                    if x_lst[-1] < x_lst[-2]:
+                        i = i+1
+
+            x_lst = x_lst[1:]
+
+        else:
+
+            i = int(len(self.pts[1])/2-0.5)
+            x_lst = self.pts[1]
+            y_lst = self.pts[2]
+
+        coeff_u = list(cst.fit(x_lst[0:i],
+                               y_lst[0:i],
+                               8)[0])
+
+        coeff_l = list(cst.fit(x_lst[i:-1],
+                               y_lst[i:-1],
+                               8)[0])
         return coeff_u, coeff_l
 
     @Part
@@ -58,7 +78,6 @@ class CurveDraw(GeomBase):
         return FittedCurve(points=self.pts[0],
                            hidden=True)
 
-
     @Part
     def foil_curve(self):
         return ScaledCurve(curve_in=self.naca_airfoil if (self.airfoil_name.isnumeric() and
@@ -71,7 +90,7 @@ class CurveDraw(GeomBase):
 
 if __name__ == '__main__':
     from parapy.gui import display
-    eyo = 'rae5212'
+    eyo = '12312'
     print(eyo.isnumeric() and (len(eyo) == 5 or len(eyo) == 4))
     display(CurveDraw(airfoil_name=eyo))
 
