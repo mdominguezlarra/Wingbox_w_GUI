@@ -37,8 +37,3 @@ class Airfoil(GeomBase, Base):
                            reference_point=self.airfoil_start,
                            factor=self.airfoil_chord,
                            mesh_deflection=1e-4)
-
-
-if __name__ == '__main__':
-    from parapy.gui import display
-    display(Airfoil())
