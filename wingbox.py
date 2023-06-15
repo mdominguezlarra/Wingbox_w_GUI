@@ -26,9 +26,9 @@ class WingBox(GeomBase):
     TE_skin_gap = Input(0.85)  # Must be after the rearmost rear_spar_loc but less than 1
 
     # Stringers
-    stringer = [[7, 5],
-                [5, 3],
-                [3, 2]]
+    stringer_idx= Input([[7, 5],
+                        [5, 3],
+                        [3, 2]])
 
     @Part
     def skin(self):
@@ -52,8 +52,7 @@ class WingBox(GeomBase):
 
     @Part
     def stringers(self):
-        return StringerSystem(spars=self.spars,
-                              ribs=self.ribs)
+        return StringerSystem(pass_down=['spars', 'ribs', 'stringer_idx'])
 
 
 if __name__ == '__main__':

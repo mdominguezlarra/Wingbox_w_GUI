@@ -275,6 +275,12 @@ class WingGeom(GeomBase):
         return Wire(quantify=len(self.test.curves_in),
                     curves_in=[self.test.curves_in[child.index]])
 
+    @Part
+    def teste(self):
+        return SplitCurve(quantify=len(self.test.curves_in),
+                          curve_in=self.test2[child.index],
+                            tool = [0.25, 0.5, 0.75])
+
 
 
 

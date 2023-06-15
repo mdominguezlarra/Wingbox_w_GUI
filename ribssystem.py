@@ -95,7 +95,7 @@ class RibsSystem(GeomBase):
         return TrimmedSurface(quantify=len(self.rib_sections),
                               built_from=self.essential_rib_cutter[child.index].plane_final_pos,
                               island=self.rib_sections[child.index],
-                              hidden=True)
+                              hidden=False)
 
     @Part
     def ribs_basis(self):
