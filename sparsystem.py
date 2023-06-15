@@ -3,6 +3,7 @@ from parapy.geom import *
 from singlespar import SingleSpar
 from cutting_planes import CuttingPlanes
 from winggeom import WingGeom
+import numpy as np
 
 
 class SparSystem(GeomBase):
@@ -24,6 +25,37 @@ class SparSystem(GeomBase):
             chords.append(airfoil.airfoil_chord)
 
         return starting_points, chords
+
+    # Retrieving spar stations locations.
+    @Attribute
+    def spar_stations(self):
+
+        frac_span = np.array(self.wing.spans) / self.wing.spans[-1]
+        air_sec = self.wing.airfoil_sections
+        air_sec = air_sec[1:-1]
+
+        front_loc = self.front_spar_loc
+        rear_loc = self.rear_spar_loc
+        front_loop = []
+        rear_loop = []
+
+        for i in air_sec:
+            frac_span = np.append(frac_span, i)
+            order_sp = np.sort(frac_span)
+            order = np.argsort(frac_span)
+            pos = np.where(order_sp == i)[0][0]
+            front_loc.append(0)
+            rear_loc.append(0)
+            front_loop = list([front_loc[k] for k in order])
+            rear_loop = list([rear_loc[k] for k in order])
+            front_loop[pos] = front_loop[pos - 1] + (i - order_sp[pos - 1]) \
+                              * (front_loop[pos + 1] - front_loop[pos - 1]) / (order_sp[pos + 1] - order_sp[pos - 1])
+            rear_loop[pos] = rear_loop[pos - 1] + (i - order_sp[pos - 1]) \
+                             * (rear_loop[pos + 1] - rear_loop[pos - 1]) / (order_sp[pos + 1] - order_sp[pos - 1])
+            front_loc[-1] = front_loop[pos]
+            rear_loc[-1] = rear_loop[pos]
+
+        return front_loop, rear_loop
 
     # Defining airfoils as surfaces to cut.
     @Part
@@ -54,7 +86,7 @@ class SparSystem(GeomBase):
                              direction='spanwise',
                              starting_point=self.wingInfo[0][child.index],
                              starting_chord_length=self.wingInfo[1][child.index],
-                             chord_percentage=self.front_spar_loc[child.index],
+                             chord_percentage=self.spar_stations[0][child.index],
                              hidden=True)
 
     # Intersections and web definitions.
@@ -88,7 +120,7 @@ class SparSystem(GeomBase):
                              direction='spanwise',
                              starting_point=self.wingInfo[0][child.index],
                              starting_chord_length=self.wingInfo[1][child.index],
-                             chord_percentage=self.rear_spar_loc[child.index],
+                             chord_percentage=self.spar_stations[1][child.index],
                              hidden=True)
 
     @Attribute
