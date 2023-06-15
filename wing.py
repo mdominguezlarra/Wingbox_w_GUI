@@ -27,7 +27,7 @@ class Wing(GeomBase):
     root_chord = Input(7)
 
     # For the rest (I have a doubt, how will we solve if the number of inputs is not coherent??)
-    spans = Input([0, 8, 13, 16])  # m. wrt the root position
+    spans = Input([0, 8, 13, 20])  # m. wrt the root position
     tapers = Input([1, 0.6, 0.35, 0.2])  # -. wrt the root chord. Extra element for root chord
     sweeps = Input([30, 40, 50])  # deg. wrt the horizontal
     dihedrals = Input([3, 5, 10])  # deg. wrt the horizontal

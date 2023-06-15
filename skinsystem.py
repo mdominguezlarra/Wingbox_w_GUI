@@ -1,5 +1,6 @@
 from parapy.core import *
 from parapy.geom import *
+from cutter import Cutter
 from cutting_planes import CuttingPlanes
 
 
@@ -8,56 +9,31 @@ class SkinSystem(GeomBase):
     ribs = Input()
     TE_gap = Input(0.94)  # Must be after the rearmost rear_spar_loc but less than 1
 
-    @Attribute
-    def skin_faces(self):
-        skin_faces = []
-        cut_accum = 0
-        for skin_cut in self.skin_cut_basis:
-            for k in range(len(skin_cut.faces)):
-                if k != range(len(skin_cut.faces)):
-                    skin_faces.extend(skin_cut.faces[2 + cut_accum:cut_accum + 6:3])
-                    cut_accum += 2
-                    break
-                else:
-                    skin_faces.append(skin_cut.faces[-1])
-
-        return skin_faces
-
     @Part
-    def skin_basis(self):
-        return SewnShell(built_from=self.wing.right_wing,
-                         mesh_deflection=1e-4,
-                         hidden=True)
-
-    @Part
-    def cutting_TE_planes(self):
-        return CuttingPlanes(quantify=len(self.ribs.airfoils_TE_cut) - 1,
-                             direction='spanwise',
-                             starting_point=self.ribs.airfoils_TE_cut[child.index].airfoil_start,
-                             starting_chord_length=self.ribs.airfoils_TE_cut[child.index].airfoil_chord,
-                             chord_percentage=self.TE_gap,
-                             ending_point=self.ribs.airfoils_TE_cut[child.index + 1].airfoil_start,
-                             ending_chord_length=self.ribs.airfoils_TE_cut[child.index + 1].airfoil_chord,
-                             hidden=True)
-
-    @Part
-    def skin_cut_basis(self):
-        return SplitSurface(quantify=len(self.cutting_TE_planes),
-                            built_from=self.skin_basis,
-                            tool=self.cutting_TE_planes[child.index].plane_final_transl,
-                            hidden=True)
-
-    @Part
-    def partitioned_skins(self):
-        return Common(quantify=len(self.skin_faces),
-                      shape_in=self.wing.right_wing,
-                      tool=self.skin_faces[child.index],
-                      mesh_deflection=1e-4,
+    def te_cutter(self):
+        return Cutter(wing=self.wing,
+                      cut_loc=self.TE_gap,
+                      extend=True,
                       hidden=True)
 
     @Part
+    def skin_cut_basis(self):
+        return SplitSurface(built_from=self.wing.right_wing,
+                            tool=self.te_cutter.total_cutter,
+                            hidden=True)
+
+    @Attribute
+    def skin_lst(self):
+
+        skin_lst = []
+        for i in range(int(len(self.skin_cut_basis.faces)/3)):
+            skin_lst.append(self.skin_cut_basis.faces[i*3+2])
+
+        return skin_lst
+
+    @Part
     def skin(self):
-        return SewnShell([section for section in self.partitioned_skins],
+        return SewnShell([section for section in self.skin_lst],
                          mesh_deflection=1e-4)
 
 if __name__ == '__main__':

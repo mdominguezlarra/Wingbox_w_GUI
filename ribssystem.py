@@ -2,6 +2,7 @@ from parapy.core import *
 from parapy.geom import *
 from rib import Rib
 from cutting_planes import CuttingPlanes
+from cutter import Cutter
 import numpy as np
 from winggeom import WingGeom
 
@@ -103,21 +104,15 @@ class RibsSystem(GeomBase):
                    hidden=True)
 
     @Part
-    def cutting_TE_planes(self):
-        return CuttingPlanes(quantify=len(self.airfoils_TE_cut) - 1,
-                             direction='spanwise',
-                             starting_point=self.airfoils_TE_cut[child.index].airfoil_start,
-                             starting_chord_length=self.airfoils_TE_cut[child.index].airfoil_chord,
-                             chord_percentage=self.TE_gap,
-                             ending_point=self.airfoils_TE_cut[child.index + 1].airfoil_start,
-                             ending_chord_length=self.airfoils_TE_cut[child.index + 1].airfoil_chord,
-                             hidden=True)
+    def te_cutter(self):
+        return Cutter(wing=self.wing,
+                      cut_loc=self.TE_gap)
 
     @Part
     def ribs_cut_basis(self):
         return SplitSurface(quantify=len(self.ribs_list),
                             built_from=self.ribs_list[child.index],
-                            tool=self.cutting_TE_planes[self.cut_plane_idx[child.index]].plane_final_transl,
+                            tool=self.te_cutter.total_cutter,
                             hidden=True)
 
     @Part
