@@ -6,7 +6,7 @@ from cutting_planes import CuttingPlanes
 
 
 class SkinSystem(GeomBase):
-    wing = Input(WingGeom(), in_tree=True)
+    wing = Input(WingGeom())
     ribs = Input(RibsSystem())
     TE_gap = Input(0.94)  # Must be after the rearmost rear_spar_loc but less than 1
 

@@ -6,7 +6,7 @@ from winggeom import WingGeom
 
 
 class RibsSystem(GeomBase):
-    wing = Input(WingGeom(), in_tree=True)
+    wing = Input(WingGeom())
 
     rib_pitch = Input(0.2)
     rib_thickness = Input(1)

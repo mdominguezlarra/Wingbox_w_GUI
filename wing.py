@@ -38,14 +38,19 @@ class Wing(GeomBase):
     airfoil_names = Input([
         'rae5212',
         'rae5212',
-        'rae5215',
-        'rae5215'
+        'rae5212',
+        'rae5212'
     ])
+
 
     # STRUCTURAL DETAILS
     # Ribs
     rib_pitch = Input(1)
     rib_thickness = Input(3)                # mm
+
+    # Spars
+    front_spar_loc = Input([0.35, 0.30, 0.25, 0.25])
+    rear_spar_loc = Input([0.85, 0.80, 0.75, 0.75])
 
     @Part
     def wing_geom(self):
@@ -77,8 +82,7 @@ class Wing(GeomBase):
     @Part
     def wingbox(self):
         return WingBox(wing=self.wing_geom,
-                       rib_pitch=self.rib_pitch,
-                       rib_thickness=self.rib_thickness)
+                       pass_down=['rib_pitch', 'rib_thickness', 'front_spar_loc', 'rear_spar_loc'])
 
 
 if __name__ == '__main__':
