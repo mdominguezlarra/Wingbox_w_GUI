@@ -5,6 +5,7 @@ from wingbox import WingBox
 from flight_cond import FlightCondition
 from avl_analysis import AvlAnalysis
 from kbeutils import avl
+from get_forces import GetForces
 
 
 class Wing(GeomBase):
@@ -59,7 +60,7 @@ class Wing(GeomBase):
                                    'airfoil_sections', 'airfoil_names'])
 
     @Part
-    def flight_con(self):
+    def flight_cond(self):
         return FlightCondition(pass_down=['weight', 'speed', 'height'])
 
     @Part
@@ -70,7 +71,7 @@ class Wing(GeomBase):
                                  reference_chord=self.wing_geom.mac,
                                  reference_point=self.position.point,          # use quarter chord MAC?
                                  surfaces=[self.wing_geom.avl_surface],
-                                 mach=self.flight_con.atmos_calc[9])
+                                 mach=self.flight_cond.atmos_calc[9])
 
     @Part
     def analysis(self):
@@ -83,6 +84,13 @@ class Wing(GeomBase):
     def wingbox(self):
         return WingBox(wing=self.wing_geom,
                        pass_down=['rib_pitch', 'rib_thickness', 'front_spar_loc', 'rear_spar_loc'])
+
+    @Part
+    def get_forces(self):
+        return GetForces(quantify=len(self.case_settings[0]),
+                         input_case=self.analysis,
+                         num_case=child.index + 1,
+                         flight_cond=self.flight_cond)
 
 
 if __name__ == '__main__':

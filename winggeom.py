@@ -262,27 +262,6 @@ class WingGeom(GeomBase):
                            sections=self.avl_sections)          # curvature: self.avl_sections);
                                                                 # flat: sections=self.profile_order[1])
 
-    # TESTS: ERASE WHEN DONE
-
-    @Part
-    def test(self):
-        return SplitCurve(curve_in=self.airfoils[0].scaled_foil,
-                          tool=[0.25, 0.5, 0.75],
-                          mesh_deflection=1e-4)
-
-    @Part
-    def test2(self):
-        return Wire(quantify=len(self.test.curves_in),
-                    curves_in=[self.test.curves_in[child.index]])
-
-    @Part
-    def teste(self):
-        return SplitCurve(quantify=len(self.test.curves_in),
-                          curve_in=self.test2[child.index],
-                            tool = [0.25, 0.5, 0.75])
-
-
-
 
 if __name__ == '__main__':
     from parapy.gui import display
