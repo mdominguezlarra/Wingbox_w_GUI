@@ -54,7 +54,7 @@ class WingGeom(GeomBase):
     airfoil_names = Input([
         'rae5212',
         '23014',
-        '22013',
+        '23013',
         'rae5215'
     ])
 

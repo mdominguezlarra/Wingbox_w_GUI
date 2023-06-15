@@ -9,7 +9,7 @@ import numpy as np
 class SparSystem(GeomBase):
     front_spar_loc = Input([0.25, 0.25, 0.25, 0.25, 0.25, 0.25])
     rear_spar_loc = Input([0.75, 0.75, 0.75, 0.75, 0.75, 0.75])
-    wing = Input(WingGeom())
+    wing = Input(WingGeom(), in_tree=True)
 
     # Retrieving wing information.
     @Attribute
