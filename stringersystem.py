@@ -27,28 +27,6 @@ class StringerSystem(GeomBase):
     spars = Input()
     stringer_idx = Input()
 
-
-    @Part
-    def intersect_front(self):
-        return IntersectedShapes(quantify=len(self.ribs.essential_ribs),
-                                 shape_in=self.ribs.essential_ribs[child.index],
-                                 tool=self.spars.total_front_spar)
-
-    @Part
-    def intersect_rear(self):
-        return IntersectedShapes(quantify=len(self.ribs.essential_ribs),
-                                 shape_in=self.ribs.essential_ribs[child.index],
-                                 tool=self.spars.total_rear_spar)
-
-    @Part
-    def split_foils(self):
-        return SplitCurve(quantify=len(self.ribs.essential_ribs),
-                          curve_in=self.ribs.rib_sections[child.index],
-                          tool=[self.intersect_front[child.index].edges[0].start,
-                                self.intersect_rear[child.index].edges[0].start,
-                                self.intersect_rear[child.index].edges[0].end,
-                                self.intersect_front[child.index].edges[0].end])
-
     @Attribute
     def wire_stringer(self):
 
@@ -83,22 +61,35 @@ class StringerSystem(GeomBase):
             for j in range(len(div_lst[i][1])):
                 stringer = [c1do.curves_in[j].end, c2do.curves_in[j].end]
                 hooks.append(stringer)
-        print(hooks)
 
         return hooks
+
+    @Part
+    def intersect_front(self):
+        return IntersectedShapes(quantify=len(self.ribs.essential_ribs),
+                                 shape_in=self.ribs.essential_ribs[child.index],
+                                 tool=self.spars.total_front_spar,
+                                 hidden=True)
+
+    @Part
+    def intersect_rear(self):
+        return IntersectedShapes(quantify=len(self.ribs.essential_ribs),
+                                 shape_in=self.ribs.essential_ribs[child.index],
+                                 tool=self.spars.total_rear_spar,
+                                 hidden=True)
+
+    @Part
+    def split_foils(self):
+        return SplitCurve(quantify=len(self.ribs.essential_ribs),
+                          curve_in=self.ribs.rib_sections[child.index],
+                          tool=[self.intersect_front[child.index].edges[0].start,
+                                self.intersect_rear[child.index].edges[0].start,
+                                self.intersect_rear[child.index].edges[0].end,
+                                self.intersect_front[child.index].edges[0].end],
+                          hidden=True)
 
     @Part
     def stringers(self):
         return LineSegment(quantify=len(self.stringer_hooks),
                            start=self.stringer_hooks[child.index][0],
                            end=self.stringer_hooks[child.index][1])
-
-
-
-
-
-
-
-
-
-

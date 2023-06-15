@@ -2,15 +2,13 @@ from parapy.core import *
 from parapy.geom import *
 from rib import Rib
 from cutting_planes import CuttingPlanes
+import numpy as np
 from winggeom import WingGeom
 
 
 class RibsSystem(GeomBase):
     wing = Input()
-
-    rib_pitch = Input(0.2)
-    rib_thickness = Input(1)
-    rib_index = Input(0)
+    rib_idx = Input()
 
     # Trailing edge gap
     TE_gap = Input(0.8)  # Must be after the rearmost rear_spar_loc but less than 1
@@ -57,20 +55,18 @@ class RibsSystem(GeomBase):
 
     @Attribute
     def rib_distribution(self):
-        if self.rib_index == 0:
-            n_r = int(self.wing.spans[-1] // self.rib_pitch)
-            r_span = []
-            for i in range(n_r):
-                r_span.append(i * self.rib_pitch)
-            n_r = n_r + 1
-            r_span.append(self.wing.spans[-1])
 
-        else:
-            print('Place other distribution indices')
-            n_r = 0
-            r_span = 0
+        n_r = self.rib_idx
+        r_span = []
+        counter = 1
+        for section in range(len(n_r)):
+            for i in range(n_r[section]):
+                r_span.append(i * (self.wing.spans[section+1] - self.wing.spans[section])/n_r[section]
+                              + self.wing.spans[section])
+                counter = counter + 1
 
-        return n_r, r_span
+        r_span.append(self.wing.spans[-1])
+        return counter, r_span
 
     @Attribute
     def rib_sections(self):
@@ -95,7 +91,7 @@ class RibsSystem(GeomBase):
         return TrimmedSurface(quantify=len(self.rib_sections),
                               built_from=self.essential_rib_cutter[child.index].plane_final_pos,
                               island=self.rib_sections[child.index],
-                              hidden=False)
+                              hidden=True)
 
     @Part
     def ribs_basis(self):

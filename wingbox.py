@@ -13,9 +13,7 @@ class WingBox(GeomBase):
     wing = Input()
 
     # Ribs
-    rib_pitch = Input(0.2)
-    rib_thickness = Input(1)
-    rib_index = Input(0)
+    rib_idx = Input([7, 5, 3])
 
     # Spars
     front_spar_loc = Input([0.25, 0.25, 0.25, 0.25])  # Must be between 0 and the foremost rear_spar_loc
@@ -44,9 +42,7 @@ class WingBox(GeomBase):
 
     @Part
     def ribs(self):
-        return RibsSystem(rib_pitch=self.rib_pitch,
-                          rib_thickness=self.rib_thickness,
-                          rib_index=self.rib_index,
+        return RibsSystem(rib_idx=self.rib_idx,
                           TE_gap=self.TE_ribs_gap,
                           wing=self.wing)
 
