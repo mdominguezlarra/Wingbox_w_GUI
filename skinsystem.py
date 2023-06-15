@@ -1,13 +1,11 @@
 from parapy.core import *
 from parapy.geom import *
-from winggeom import WingGeom
-from ribssystem import RibsSystem
 from cutting_planes import CuttingPlanes
 
 
 class SkinSystem(GeomBase):
-    wing = Input(WingGeom())
-    ribs = Input(RibsSystem())
+    wing = Input()
+    ribs = Input()
     TE_gap = Input(0.94)  # Must be after the rearmost rear_spar_loc but less than 1
 
     @Attribute
@@ -50,11 +48,17 @@ class SkinSystem(GeomBase):
                             hidden=True)
 
     @Part
-    def skin(self):
+    def partitioned_skins(self):
         return Common(quantify=len(self.skin_faces),
                       shape_in=self.wing.right_wing,
-                      tool=self.skin_faces[child.index])
+                      tool=self.skin_faces[child.index],
+                      mesh_deflection=1e-4,
+                      hidden=True)
 
+    @Part
+    def skin(self):
+        return SewnShell([section for section in self.partitioned_skins],
+                         mesh_deflection=1e-4)
 
 if __name__ == '__main__':
     from parapy.gui import display

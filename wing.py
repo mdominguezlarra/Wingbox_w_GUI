@@ -49,8 +49,8 @@ class Wing(GeomBase):
     rib_thickness = Input(3)                # mm
 
     # Spars
-    front_spar_loc = Input([0.35, 0.30, 0.25, 0.25])
-    rear_spar_loc = Input([0.85, 0.80, 0.75, 0.75])
+    front_spar_loc = Input([0.25, 0.25, 0.25, 0.25])
+    rear_spar_loc = Input([0.75, 0.75, 0.75, 0.75])
 
     @Part
     def wing_geom(self):

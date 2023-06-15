@@ -7,9 +7,9 @@ import numpy as np
 
 
 class SparSystem(GeomBase):
-    front_spar_loc = Input([0.25, 0.25, 0.25, 0.25, 0.25, 0.25])
-    rear_spar_loc = Input([0.75, 0.75, 0.75, 0.75, 0.75, 0.75])
-    wing = Input(WingGeom(), in_tree=True)
+    front_spar_loc = Input([0.25, 0.25, 0.25, 0.25])
+    rear_spar_loc = Input([0.75, 0.75, 0.75, 0.75])
+    wing = Input()
 
     # Retrieving wing information.
     @Attribute
@@ -111,7 +111,8 @@ class SparSystem(GeomBase):
     def front_spar_web(self):
         return SingleSpar(quantify=len(self.front_spar_intersecs) - 1,
                           curves=[self.front_spar_intersec_curves[child.index],
-                                  self.front_spar_intersec_curves[child.index + 1]])
+                                  self.front_spar_intersec_curves[child.index + 1]],
+                          hidden=True)
 
     # Same process is made for the rear spar.
     @Part
@@ -143,7 +144,16 @@ class SparSystem(GeomBase):
     def rear_spar_web(self):
         return SingleSpar(quantify=len(self.rear_spar_intersecs) - 1,
                           curves=[self.rear_spar_intersec_curves[child.index],
-                                  self.rear_spar_intersec_curves[child.index + 1]])
+                                  self.rear_spar_intersec_curves[child.index + 1]],
+                          hidden=True)
+
+    @Part
+    def total_front_spar(self):
+        return SewnShell([section.SingleSpar for section in self.front_spar_web])
+
+    @Part
+    def total_rear_spar(self):
+        return SewnShell([section.SingleSpar for section in self.rear_spar_web])
 
 
 if __name__ == '__main__':

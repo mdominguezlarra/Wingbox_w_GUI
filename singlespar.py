@@ -7,7 +7,8 @@ class SingleSpar(GeomBase):
 
     @Part
     def SingleSpar(self):
-        return FilledSurface(curves=self.curves)
+        return FilledSurface(curves=self.curves,
+                             mesh_deflection=1e-4)
 
 
 if __name__ == '__main__':

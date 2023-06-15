@@ -6,7 +6,7 @@ from winggeom import WingGeom
 
 
 class RibsSystem(GeomBase):
-    wing = Input(WingGeom())
+    wing = Input()
 
     rib_pitch = Input(0.2)
     rib_thickness = Input(1)
@@ -53,9 +53,6 @@ class RibsSystem(GeomBase):
                 if cut_plane_idx == cut_plane_idx_old and j >= ribs_idx:
                     cut_plane_lst.append(cut_plane_idx)
 
-        print(cut_plane_lst)
-        print(len(cut_plane_lst))
-
         return cut_plane_lst
 
     @Attribute
@@ -75,6 +72,31 @@ class RibsSystem(GeomBase):
 
         return n_r, r_span
 
+    @Attribute
+    def rib_sections(self):
+
+        ribs = [self.wing.airfoils[0].scaled_foil]
+
+        for i in self.wing.inter_airfoils:
+            ribs.append(i.scaled_foil)
+
+        ribs.append(self.wing.airfoils[-1].scaled_foil)
+        return ribs
+
+    @Part
+    def essential_rib_cutter(self):
+        return CuttingPlanes(quantify=len(self.rib_sections),
+                             direction='chordwise',
+                             starting_point=self.rib_sections[child.index].start,
+                             hidden=True)
+
+    @Part
+    def essential_ribs(self):
+        return TrimmedSurface(quantify=len(self.rib_sections),
+                              built_from=self.essential_rib_cutter[child.index].plane_final_pos,
+                              island=self.rib_sections[child.index],
+                              hidden=True)
+
     @Part
     def ribs_basis(self):
         return Rib(quantify=self.rib_distribution[0],
@@ -82,7 +104,7 @@ class RibsSystem(GeomBase):
                    rib_thickness=self.rib_thickness,
                    skin_shell=self.wing.right_wing,
                    root_chord=self.wing.root_chord,
-                   hidden=False)
+                   hidden=True)
 
     @Part
     def cutting_TE_planes(self):
@@ -93,14 +115,14 @@ class RibsSystem(GeomBase):
                              chord_percentage=self.TE_gap,
                              ending_point=self.airfoils_TE_cut[child.index + 1].airfoil_start,
                              ending_chord_length=self.airfoils_TE_cut[child.index + 1].airfoil_chord,
-                             hidden=False)
+                             hidden=True)
 
     @Part
     def ribs_cut_basis(self):
         return SplitSurface(quantify=len(self.ribs_list),
                             built_from=self.ribs_list[child.index],
                             tool=self.cutting_TE_planes[self.cut_plane_idx[child.index]].plane_final_transl,
-                            hidden=False)
+                            hidden=True)
 
     @Part
     def rib_cut_wires(self):
@@ -113,7 +135,8 @@ class RibsSystem(GeomBase):
     def ribs(self):
         return TrimmedSurface(quantify=len(self.ribs_basis),
                               built_from=self.ribs_basis[child.index].cut_tool,
-                              island=self.rib_cut_wires[child.index].edges)
+                              island=self.rib_cut_wires[child.index].edges,
+                              mesh_deflection=1e-4)
 
 
 if __name__ == '__main__':

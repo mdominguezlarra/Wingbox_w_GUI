@@ -75,14 +75,16 @@ class CuttingPlanes(GeomBase):
     def plane_final_scale(self):
         return ScaledSurface(factor=self.spanwise_rot[2]/100,
                              reference_point=self.spanwise_rot[1],
-                             surface_in=self.plane_final_rot)
+                             surface_in=self.plane_final_rot,
+                             hidden=True)
 
     @Part
     def plane_final_transl(self):
         return TranslatedSurface(surface_in=self.plane_final_scale,
                                  displacement=Vector(self.spanwise_rot[2]/2 * np.sin(self.spanwise_rot[0]),
                                                      self.spanwise_rot[2]/2 * np.cos(self.spanwise_rot[0]),
-                                                     0))
+                                                     0),
+                                 hidden=True)
 
 if __name__ == '__main__':
     from parapy.gui import display
