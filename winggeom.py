@@ -53,9 +53,9 @@ class WingGeom(GeomBase):
     airfoil_sections = Input([0, 0.3, 0.7, 1])
     airfoil_names = Input([
         'rae5212',
-        '23014',
-        '23013',
-        'rae5215'
+        'rae5212',
+        'rae5212',
+        'rae5212'
     ])
 
     @Attribute
@@ -190,7 +190,7 @@ class WingGeom(GeomBase):
             position=translate(rotate90(self.position, 'x'),
                                'z',
                                -self.spans[-1]*self.airfoil_sections[child.index]),
-            hidden=False)
+            hidden=True)
 
     @Part
     def airfoil_chords(self):
@@ -202,13 +202,13 @@ class WingGeom(GeomBase):
     def airfoil_unscaled(self):
         return CurveDraw(quantify=len(self.airfoil_sections),
                          airfoil_name=self.airfoil_names[child.index],
-                         hidden=False)
+                         hidden=True)
 
     @Part
     def airfoil_interp_unscaled(self):
         return FittedCurve(quantify=len(self.airfoil_interp[1]),
                            points=self.airfoil_interp[0][child.index],
-                           hidden=False)
+                           hidden=True)
 
     @Part
     def airfoils(self):
@@ -231,7 +231,7 @@ class WingGeom(GeomBase):
         return LoftedShell(quantify=len(self.profile_order[0])-1,
                            profiles=self.profile_order[0][child.index:child.index+2],
                            mesh_deflection=1e-4,
-                           hidden=False)
+                           hidden=True)
 
     @Part
     def right_wing(self):
