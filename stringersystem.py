@@ -1,5 +1,6 @@
 from parapy.core import *
 from parapy.geom import *
+from cutter import Cutter
 import numpy as np
 
 
@@ -25,6 +26,7 @@ class StringerSystem(GeomBase):
 
     ribs = Input()
     spars = Input()
+    wing = Input()
     stringer_idx = Input()
 
     @Attribute
@@ -65,17 +67,29 @@ class StringerSystem(GeomBase):
         return hooks
 
     @Part
+    def airfoil_cut_front(self):
+        return Cutter(cut_loc=self.spars.spar_stations[0],
+                      wing=self.wing,
+                      extend=True)
+
+    @Part
+    def airfoil_cut_rear(self):
+        return Cutter(cut_loc=self.spars.spar_stations[1],
+                      wing=self.wing,
+                      extend=True)
+
+    @Part
     def intersect_front(self):
         return IntersectedShapes(quantify=len(self.ribs.essential_ribs),
                                  shape_in=self.ribs.essential_ribs[child.index],
-                                 tool=self.spars.total_front_spar,
+                                 tool=self.airfoil_cut_front.total_cutter,
                                  hidden=True)
 
     @Part
     def intersect_rear(self):
         return IntersectedShapes(quantify=len(self.ribs.essential_ribs),
                                  shape_in=self.ribs.essential_ribs[child.index],
-                                 tool=self.spars.total_rear_spar,
+                                 tool=self.airfoil_cut_rear.total_cutter,
                                  hidden=True)
 
     @Part
