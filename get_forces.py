@@ -36,7 +36,7 @@ class GetForces(Base):
         x_poly_coeffs = []
         z_poly_coeffs = []
         y_pos = self.data_treatment[0]
-        spar_curves = self.input_case.wing.wingbox.spars.front_spar_intersec_curves
+        spar_curves = self.input_case.wing.wingbox.spars.spars[0].cutter_intersec_curves
         spans = self.input_case.wing.spans
 
         # Defining control points to be used in the interpolation.
