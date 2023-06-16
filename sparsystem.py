@@ -34,10 +34,13 @@ class SparSystem(GeomBase):
         air_sec = self.wing.airfoil_sections
         air_sec = air_sec[1:-1]
 
-        front_loc = self.front_spar_loc
-        rear_loc = self.rear_spar_loc
+        front_loc_copy = self.front_spar_loc
+        rear_loc_copy = self.rear_spar_loc
+        front_loc = [i for i in front_loc_copy]
+        rear_loc = [i for i in rear_loc_copy]
         front_loop = []
         rear_loop = []
+
 
         for i in air_sec:
             frac_span = np.append(frac_span, i)
@@ -54,6 +57,7 @@ class SparSystem(GeomBase):
                              * (rear_loop[pos + 1] - rear_loop[pos - 1]) / (order_sp[pos + 1] - order_sp[pos - 1])
             front_loc[-1] = front_loop[pos]
             rear_loc[-1] = rear_loop[pos]
+            print(front_loc_copy)
 
         return front_loop, rear_loop
 
