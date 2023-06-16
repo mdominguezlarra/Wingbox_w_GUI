@@ -6,6 +6,7 @@ from flight_cond import FlightCondition
 from avl_analysis import AvlAnalysis
 from kbeutils import avl
 from get_forces import GetForces
+from femfilegenerator import FEMFileGenerator
 
 
 class WingBoxAssessment(GeomBase):
@@ -62,9 +63,9 @@ class WingBoxAssessment(GeomBase):
         'Al2024-T3-1.27-A',   # SPAR WEB
         'Al2024-T3-1.27-A'])  # RIBS
     mat_1D = Input([
-        'Al7475-T61-0.254-A',   # STRINGERS
-        'Al7475-T61-0.254-A',   # SPAR CAPS
-        'Al7475-T61-0.254-A'])  # RIB CAPS
+        'Al7475-T61-1.524-S',  # STRINGERS
+        'Al7475-T61-1.524-S',  # SPAR CAPS
+        'Al7475-T61-1.524-S'])  # RIB CAPS
 
     # Stringers cross-sections
     str_cs = Input()
@@ -110,6 +111,10 @@ class WingBoxAssessment(GeomBase):
                          input_case=self.analysis,
                          num_case=child.index + 1,
                          flight_cond=self.flight_cond)
+
+    @Part
+    def FEMFile(self):
+        return FEMFileGenerator(wing=self.wingbox)
 
 
 if __name__ == '__main__':
