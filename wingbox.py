@@ -24,7 +24,7 @@ class WingBox(GeomBase):
     TE_skin_gap = Input(0.85)  # Must be after the rearmost rear_spar_loc but less than 1
 
     # Stringers
-    stringer_idx= Input([[7, 5],
+    stringer_idx = Input([[7, 5],
                         [5, 3],
                         [3, 2]])
 
