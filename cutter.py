@@ -1,7 +1,7 @@
 from parapy.core import *
 from parapy.geom import *
 from cutting_planes import CuttingPlanes
-from singlespar import SingleSpar
+from spar import Spar
 
 
 class Cutter(GeomBase):
@@ -85,7 +85,7 @@ class Cutter(GeomBase):
 
     @Part
     def cutter_web(self):
-        return SingleSpar(quantify=len(self.cutter_intersecs) - 1,
+        return Spar(quantify=len(self.cutter_intersecs) - 1,
                           curves=[self.cutter_intersec_curves[child.index],
                                   self.cutter_intersec_curves[child.index + 1]],
                           hidden=True)
@@ -93,7 +93,7 @@ class Cutter(GeomBase):
     @Part
     def extended_web(self):
         return ExtendedSurface(quantify=len(self.cutter_web),
-                               surface_in=self.cutter_web[child.index].SingleSpar,
+                               surface_in=self.cutter_web[child.index].Spar,
                                distance=5,
                                side='u',
                                hidden=True)
@@ -101,7 +101,7 @@ class Cutter(GeomBase):
     @Part
     def total_cutter(self):
         return SewnShell([section for section in self.extended_web] if self.extend else
-                         [section.SingleSpar for section in self.cutter_web],
+                         [section.Spar for section in self.cutter_web],
                          hidden=True)
 
 

@@ -1,6 +1,6 @@
 from parapy.core import *
 from parapy.geom import *
-from singlespar import SingleSpar
+from spar import Spar
 from cutting_planes import CuttingPlanes
 from winggeom import WingGeom
 import numpy as np
@@ -109,7 +109,7 @@ class SparSystem(GeomBase):
 
     @Part
     def front_spar_web(self):
-        return SingleSpar(quantify=len(self.front_spar_intersecs) - 1,
+        return Spar(quantify=len(self.front_spar_intersecs) - 1,
                           curves=[self.front_spar_intersec_curves[child.index],
                                   self.front_spar_intersec_curves[child.index + 1]],
                           hidden=True)
@@ -142,18 +142,18 @@ class SparSystem(GeomBase):
 
     @Part
     def rear_spar_web(self):
-        return SingleSpar(quantify=len(self.rear_spar_intersecs) - 1,
+        return Spar(quantify=len(self.rear_spar_intersecs) - 1,
                           curves=[self.rear_spar_intersec_curves[child.index],
                                   self.rear_spar_intersec_curves[child.index + 1]],
                           hidden=True)
 
     @Part
     def total_front_spar(self):
-        return SewnShell([section.SingleSpar for section in self.front_spar_web])
+        return SewnShell([section.Spar for section in self.front_spar_web])
 
     @Part
     def total_rear_spar(self):
-        return SewnShell([section.SingleSpar for section in self.rear_spar_web])
+        return SewnShell([section.Spar for section in self.rear_spar_web])
 
 
 if __name__ == '__main__':
