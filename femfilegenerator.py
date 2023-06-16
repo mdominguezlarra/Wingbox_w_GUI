@@ -8,7 +8,6 @@ import numpy as np
 import csv
 
 
-
 def mat_props_finder(mat_str: str):
     cvs_units = [6.894757e6, 6.894757e6, 6.894757e6, 1, 515.378818, 6.894757e6, 6.894757e6, 6.894757e6]
 
@@ -38,7 +37,7 @@ def mat_props_finder(mat_str: str):
                     return prop_dict
 
 
-class FEMFileGenerator(Base):
+class FEMFileGenerator(GeomBase):
     wing = Input()
 
     mat_2D = Input([

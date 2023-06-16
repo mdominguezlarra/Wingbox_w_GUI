@@ -31,7 +31,7 @@ class WingBox(GeomBase):
 
     @Attribute
     def STEP_node_list(self):
-        STEP_lst = [self.skin.skin, self.spars.total_front_spar, self.spars.total_rear_spar]
+        STEP_lst = [self.skin.skin, self.spars.spars[0].total_cutter, self.spars.spars[1].total_cutter]
         STEP_lst.extend([rib for rib in self.ribs.ribs])
         STEP_lst.extend([stringer for stringer in self.stringers.stringers])
         return STEP_lst
