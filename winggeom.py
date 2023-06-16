@@ -44,10 +44,10 @@ class WingGeom(GeomBase):
 
     # For the rest (I have a doubt, how will we solve if the number of inputs is not coherent??)
     spans = Input([0, 8, 13, 16])           # m. wrt the root position
-    tapers = Input([1, 0.6, 0.35, 0.2])     # -. wrt the root chord. Extra element for root chord
-    sweeps = Input([30, 40, 50])            # deg. wrt the horizontal
-    dihedrals = Input([3, 5, 10])            # deg. wrt the horizontal
-    twist = Input([2, 0, -1, -3])           # def. wrt the horizontal (this includes the initial INCIDENCE!!)
+    tapers = Input([1, 1, 1, 1])     # -. wrt the root chord. Extra element for root chord
+    sweeps = Input([0, 0, 0])            # deg. wrt the horizontal
+    dihedrals = Input([0, 0, 0])            # deg. wrt the horizontal
+    twist = Input([0, 0, 0, 0])           # def. wrt the horizontal (this includes the initial INCIDENCE!!)
 
     # Airfoils
     airfoil_sections = Input([0, 0.3, 0.7, 1])
@@ -107,7 +107,7 @@ class WingGeom(GeomBase):
         edges_clean = []
 
         for i in range(len(edges)):
-            if edges[i][0].start.x != edges[i-1][0].start.x:
+            if edges[i][0].start.y != edges[i-1][0].start.y:
                 edges_clean.append(edges[i])
 
         return edges_clean
@@ -190,7 +190,7 @@ class WingGeom(GeomBase):
             position=translate(rotate90(self.position, 'x'),
                                'z',
                                -self.spans[-1]*self.airfoil_sections[child.index]),
-            hidden=True)
+            hidden=False)
 
     @Part
     def airfoil_chords(self):
