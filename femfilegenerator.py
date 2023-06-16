@@ -31,8 +31,7 @@ def mat_props_finder(mat_str: str):
                 if id == row_str and t_m < t < t_p:
                     prop_lst = [float(row[k]) * cvs_units[k - 6] for k in range(6, len(row) - 1)]
                     prop_lst.append(t)
-                    zip_dict = zip(header, prop_lst)
-                    prop_dict = {key: value for (key, value) in zip_dict}
+                    prop_dict = {key: value for (key, value) in zip(header, prop_lst)}
 
                     return prop_dict
 
