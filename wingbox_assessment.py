@@ -8,24 +8,23 @@ from kbeutils import avl
 from get_forces import GetForces
 
 
-class Wing(GeomBase):
-
+class WingBoxAssessment(GeomBase):
     # ALL INPUTS ARE ESTABLISHED HERE
-
+    # INPUTS MUST BE ON SI UNITS, UNLESS STATED OTHERWISE IN COMMENTS.
     # AIRCRAFT GENERAL INPUTS
-    weight = Input(5000)    # kg.
-    speed = Input(80)       # m/s.
-    height = Input(1000)    # ft.
+    weight = Input(5000)  # kg.
+    speed = Input(80)  # m/s.
+    height = Input(1000)  # ft.
 
     # LOAD CASES
     case_settings = Input([('fixed_aoa', {'alpha': 3}),
-                          ('fixed_cl', {'alpha': avl.Parameter(name='alpha',
-                                                               value=0.3,
-                                                               setting='CL')})])
+                           ('fixed_cl', {'alpha': avl.Parameter(name='alpha',
+                                                                value=0.3,
+                                                                setting='CL')})])
 
     # WING GEOMETRY
     # For 1st section
-    root_chord = Input(7)
+    root_chord = Input(7)  # m.
 
     # For the rest (I have a doubt, how will we solve if the number of inputs is not coherent??)
     spans = Input([0, 8, 13, 20])  # m. wrt the root position
@@ -35,7 +34,7 @@ class Wing(GeomBase):
     twist = Input([2, 0, -1, -3])  # def. wrt the horizontal (this includes the initial INCIDENCE!!)
 
     # Airfoils
-    airfoil_sections = Input([0, 0.3, 0.7, 1])
+    airfoil_sections = Input([0, 0.3, 0.7, 1])  # percentage wrt to root.
     airfoil_names = Input([
         'rae5212',
         'rae5212',
@@ -43,15 +42,35 @@ class Wing(GeomBase):
         'rae5212'
     ])
 
-
     # STRUCTURAL DETAILS
     # Ribs
     rib_pitch = Input(1)
-    rib_thickness = Input(3)                # mm
+    rib_thickness = Input(3)  # mm
 
     # Spars
     front_spar_loc = Input([0.25, 0.25, 0.25, 0.25])
     rear_spar_loc = Input([0.75, 0.75, 0.75, 0.75])
+
+    # FEM MODEL INPUTS
+    # AERODYNAMIC LOADS ARE AUTOMATICALLY CALCULATED USING GET_FORCES.
+    # Number of elements
+    num_elem_FEM = Input()
+
+    # Material definitions. Strings combination of 'alloy-temper-thickness-basis'. Thickness in mm.
+    mat_2D = Input([
+        'Al2024-T3-1.27-A',   # SKIN
+        'Al2024-T3-1.27-A',   # SPAR WEB
+        'Al2024-T3-1.27-A'])  # RIBS
+    mat_1D = Input([
+        'Al7475-T61-0.254-A',   # STRINGERS
+        'Al7475-T61-0.254-A',   # SPAR CAPS
+        'Al7475-T61-0.254-A'])  # RIB CAPS
+
+    # Stringers cross-sections
+    str_cs = Input()
+
+    # BCs
+    bcs = Input()
 
     @Part
     def wing_geom(self):
@@ -67,9 +86,9 @@ class Wing(GeomBase):
     def avl_configuration(self):
         return avl.Configuration(name='wing',
                                  reference_area=self.wing_geom.planform_area,
-                                 reference_span=self.wing_geom.spans[-1]*2,
+                                 reference_span=self.wing_geom.spans[-1] * 2,
                                  reference_chord=self.wing_geom.mac,
-                                 reference_point=self.position.point,          # use quarter chord MAC?
+                                 reference_point=self.position.point,  # use quarter chord MAC?
                                  surfaces=[self.wing_geom.avl_surface],
                                  mach=self.flight_cond.atmos_calc[9])
 
@@ -95,4 +114,5 @@ class Wing(GeomBase):
 
 if __name__ == '__main__':
     from parapy.gui import display
-    display(Wing())
+
+    display(WingBoxAssessment())
