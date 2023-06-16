@@ -6,7 +6,6 @@ class Rib(GeomBase):
 
     rib_span = Input()
     skin_shell = Input()
-    rib_thickness = Input()
     root_chord = Input()
 
     @Part
@@ -28,23 +27,5 @@ class Rib(GeomBase):
     def rib_surf(self):
         return TrimmedSurface(built_from=self.cut_tool,
                               island=self.rib_wire.edges[0],
+                              mesh_deflection=1e-4,
                               hidden=False)
-
-    # @Part
-    # def rib_sol_r(self):
-    #     return ExtrudedSolid(island=self.rib_wire.edges[0],
-    #                          distance=self.rib_thickness / 2 / 1000,
-    #                          direction='y',
-    #                          hidden=False)
-    #
-    # @Part
-    # def rib_sol_l(self):
-    #     return ExtrudedSolid(island=self.rib_wire.edges[0],
-    #                          distance=self.rib_thickness / 2 / 1000,
-    #                          direction='y_',
-    #                          hidden=False)
-    #
-    # @Part
-    # def rib_fin(self):
-    #     return FusedSolid(shape_in=self.rib_sol_l,
-    #                       tool=self.rib_sol_r)

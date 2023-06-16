@@ -59,15 +59,13 @@ class RibsSystem(GeomBase):
 
         n_r = self.rib_idx
         r_span = []
-        counter = 1
         for section in range(len(n_r)):
             for i in range(n_r[section]):
                 r_span.append(i * (self.wing.spans[section+1] - self.wing.spans[section])/n_r[section]
                               + self.wing.spans[section])
-                counter = counter + 1
 
         r_span.append(self.wing.spans[-1])
-        return counter, r_span
+        return r_span
 
     @Attribute
     def rib_sections(self):
@@ -95,10 +93,9 @@ class RibsSystem(GeomBase):
                               hidden=True)
 
     @Part
-    def ribs_basis(self):
-        return Rib(quantify=self.rib_distribution[0],
-                   rib_span=self.rib_distribution[1][child.index],
-                   rib_thickness=self.rib_thickness,
+    def ribs_uncut(self):
+        return Rib(quantify=len(self.rib_distribution),
+                   rib_span=self.rib_distribution[child.index],
                    skin_shell=self.wing.right_wing,
                    root_chord=self.wing.root_chord,
                    hidden=True)
@@ -106,12 +103,13 @@ class RibsSystem(GeomBase):
     @Part
     def te_cutter(self):
         return Cutter(wing=self.wing,
-                      cut_loc=self.TE_gap)
+                      cut_loc=self.TE_gap,
+                      extend=True)
 
     @Part
     def ribs_cut_basis(self):
-        return SplitSurface(quantify=len(self.ribs_list),
-                            built_from=self.ribs_list[child.index],
+        return SplitSurface(quantify=len(self.rib_distribution),
+                            built_from=self.ribs_uncut[child.index].rib_surf,
                             tool=self.te_cutter.total_cutter,
                             hidden=True)
 
@@ -119,13 +117,13 @@ class RibsSystem(GeomBase):
     def rib_cut_wires(self):
         return IntersectedShapes(quantify=len(self.ribs_cut_basis),
                                  shape_in=self.ribs_cut_basis[child.index].faces[1],
-                                 tool=self.ribs_basis[child.index].cut_tool,
+                                 tool=self.ribs_uncut[child.index].cut_tool,
                                  hidden=True)
 
     @Part
     def ribs(self):
-        return TrimmedSurface(quantify=len(self.ribs_basis),
-                              built_from=self.ribs_basis[child.index].cut_tool,
+        return TrimmedSurface(quantify=len(self.rib_distribution),
+                              built_from=self.ribs_uncut[child.index].cut_tool,
                               island=self.rib_cut_wires[child.index].edges,
                               mesh_deflection=1e-4)
 

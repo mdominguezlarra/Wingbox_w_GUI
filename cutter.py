@@ -6,14 +6,15 @@ from spar import Spar
 
 class Cutter(GeomBase):
 
-    cut_loc = Input(0.8)
+    cut_loc = Input()
     wing = Input()
     extend = Input(False)
+    hidden = Input(True)
 
     @Attribute
     def cut_loc_ext(self):
-        cut_loc_ext = []
 
+        cut_loc_ext = []
         for i in range(len(self.wing.profile_order[0])):
             cut_loc_ext.append(self.cut_loc)
 
@@ -62,7 +63,8 @@ class Cutter(GeomBase):
                              direction='spanwise',
                              starting_point=self.wingInfo[0][child.index],
                              starting_chord_length=self.wingInfo[1][child.index],
-                             chord_percentage=self.cut_loc_ext[child.index],
+                             chord_percentage=(self.cut_loc[child.index] if isinstance(self.cut_loc, list)
+                                               else self.cut_loc_ext[child.index]),
                              hidden=True)
 
     # Intersections and web definitions.
@@ -86,9 +88,9 @@ class Cutter(GeomBase):
     @Part
     def cutter_web(self):
         return Spar(quantify=len(self.cutter_intersecs) - 1,
-                          curves=[self.cutter_intersec_curves[child.index],
-                                  self.cutter_intersec_curves[child.index + 1]],
-                          hidden=True)
+                    curves=[self.cutter_intersec_curves[child.index],
+                            self.cutter_intersec_curves[child.index + 1]],
+                    hidden=True)
 
     @Part
     def extended_web(self):
@@ -102,7 +104,7 @@ class Cutter(GeomBase):
     def total_cutter(self):
         return SewnShell([section for section in self.extended_web] if self.extend else
                          [section.Spar for section in self.cutter_web],
-                         hidden=True)
+                         hidden=self.hidden)
 
 
 if __name__ == '__main__':
