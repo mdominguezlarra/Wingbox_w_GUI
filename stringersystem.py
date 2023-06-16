@@ -52,9 +52,9 @@ class StringerSystem(GeomBase):
             c1do = SplitCurve(curve_in=curves[i][1],
                               tool=[x*(curves[i][1].u2-curves[i][1].u1) + curves[i][1].u1 for x in div_lst[i][1]])
             c2up = SplitCurve(curve_in=curves[i+1][0],
-                              tool=[x*(curves[i][0].u2-curves[i][0].u1) + curves[i][0].u1 for x in div_lst[i][0]])
+                              tool=[x*(curves[i+1][0].u2-curves[i+1][0].u1) + curves[i+1][0].u1 for x in div_lst[i][0]])
             c2do = SplitCurve(curve_in=curves[i+1][1],
-                              tool=[x*(curves[i][1].u2-curves[i][1].u1) + curves[i][1].u1 for x in div_lst[i][1]])
+                              tool=[x*(curves[i+1][1].u2-curves[i+1][1].u1) + curves[i+1][1].u1 for x in div_lst[i][1]])
 
             for j in range(len(div_lst[i][0])):
                 stringer = [c1up.curves_in[j].end, c2up.curves_in[j].end]
