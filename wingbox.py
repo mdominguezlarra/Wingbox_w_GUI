@@ -1,5 +1,6 @@
 from parapy.core import *
 from parapy.geom import *
+from parapy.exchange import *
 from ribssystem import RibsSystem
 from sparsystem import SparSystem
 from skinsystem import SkinSystem
@@ -28,6 +29,13 @@ class WingBox(GeomBase):
                         [5, 3],
                         [3, 2]])
 
+    @Attribute
+    def STEP_node_list(self):
+        STEP_lst = [self.skin.skin, self.spars.total_front_spar, self.spars.total_rear_spar]
+        STEP_lst.extend([rib for rib in self.ribs.ribs])
+        STEP_lst.extend([stringer for stringer in self.stringers.stringers])
+        return STEP_lst
+
     @Part
     def skin(self):
         return SkinSystem(TE_gap=self.TE_skin_gap,
@@ -49,6 +57,10 @@ class WingBox(GeomBase):
     @Part
     def stringers(self):
         return StringerSystem(pass_down=['spars', 'ribs', 'stringer_idx'])
+
+    @Part
+    def STEPFile(self):
+        return STEPWriter(nodes=self.STEP_node_list, schema='AP203')
 
 
 if __name__ == '__main__':
