@@ -1,5 +1,6 @@
 from parapy.core import *
 from parapy.geom import *
+from parapy.core.validate import *
 from .geometry.geometry_tools.winggeom import WingGeom
 from .geometry.wingbox import WingBox
 from .analysis_tools.avl_analysis import AvlAnalysis
@@ -11,9 +12,9 @@ class WingBoxAssessment(GeomBase):
     # ALL INPUTS ARE ESTABLISHED HERE
     # INPUTS MUST BE ON SI UNITS, UNLESS STATED OTHERWISE IN COMMENTS.
     # AIRCRAFT GENERAL INPUTS
-    weight = Input(5000)  # kg.
-    speed = Input(80)  # m/s.
-    height = Input(1000)  # ft.
+    weight = Input(validator=Positive)  # kg.
+    speed = Input(validator=Positive)  # m/s.
+    height = Input()  # ft.
 
     # LOAD CASES
     case_settings = Input([['fixed_aoa', 'fixed_cl'], ['alpha', 'CL'], [3, 0.3]])

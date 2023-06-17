@@ -37,7 +37,7 @@ class AvlAnalysis(avl.Interface):
                                  reference_area=self.wing.planform_area,
                                  reference_span=self.wing.spans[-1] * 2,
                                  reference_chord=self.wing.mac,
-                                 reference_point=self.wing.position.point,  # use quarter chord MAC?
+                                 reference_point=self.wing.position.point,
                                  surfaces=[self.avl_surface],
                                  mach=self.flight_cond.atmos_calc[9])
 
@@ -55,7 +55,7 @@ class AvlAnalysis(avl.Interface):
 
     @Part
     def avl_sections(self):
-        return avl.SectionFromCurve(quantify=len(self.wing.profile_order[0]),            # It looks weird on the display
+        return avl.SectionFromCurve(quantify=len(self.wing.profile_order[0]),
                                     curve_in=self.wing.profile_order[0][child.index])
 
     @Part
