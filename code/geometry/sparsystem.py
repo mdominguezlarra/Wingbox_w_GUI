@@ -58,9 +58,6 @@ class SparSystem(GeomBase):
                       hidden=False)
 
 
-
-
-
 if __name__ == '__main__':
     from parapy.gui import display
 
