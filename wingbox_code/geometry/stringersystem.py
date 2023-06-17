@@ -24,7 +24,6 @@ def division_lst(nested_arr):
 
 def stringer_finder(edges, up=True):
 
-    stringer = []
     edge_start = []
     idx = []
 

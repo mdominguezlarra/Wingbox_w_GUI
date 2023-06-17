@@ -38,7 +38,7 @@ class AvlAnalysis(avl.Interface):
                                  reference_span=self.wing.spans[-1] * 2,
                                  reference_chord=self.wing.mac,
                                  reference_point=self.wing.position.point,  # use quarter chord MAC?
-                                 surfaces=[self.wing.avl_surface],
+                                 surfaces=[self.avl_surface],
                                  mach=self.flight_cond.atmos_calc[9])
 
     @Attribute
@@ -52,4 +52,20 @@ class AvlAnalysis(avl.Interface):
         return avl.Case(quantify=len(self.case_input),
                         name=self.case_input[child.index][0],
                         settings=self.case_input[child.index][1])
+
+    @Part
+    def avl_sections(self):
+        return avl.SectionFromCurve(quantify=len(self.wing.profile_order[0]),            # It looks weird on the display
+                                    curve_in=self.wing.profile_order[0][child.index])
+
+    @Part
+    def avl_surface(self):
+        return avl.Surface(name='Wing',
+                           n_chordwise=12,
+                           chord_spacing=avl.Spacing.cosine,
+                           n_spanwise=20,
+                           span_spacing=avl.Spacing.cosine,
+                           y_duplicate=self.wing.position.point[1],  # Always mirrored. self.is_mirrored does not appear
+                           sections=self.avl_sections)               # curvature: self.avl_sections);
+                                                                     # flat: sections=self.profile_order[1])
 

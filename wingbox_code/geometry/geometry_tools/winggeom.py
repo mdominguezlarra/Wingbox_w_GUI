@@ -115,12 +115,15 @@ class WingGeom(GeomBase):
     def airfoil_interp(self):
         coeff_u = np.zeros((len(self.airfoil_sections), 8))
         coeff_l = np.zeros((len(self.airfoil_sections), 8))
+
         for i in range(len(self.airfoil_sections)):
             coeff_u[i] = self.airfoil_unscaled[i].cst[0]
             coeff_l[i] = self.airfoil_unscaled[i].cst[1]
 
         inter, idx, p, s_span, secs = intersection_airfoil(self.spans, self.airfoil_sections)
 
+        print(idx[0])
+        print(idx[1])
         # Linear interpolation
         airfoils = []
         for i in range(p):
@@ -128,8 +131,8 @@ class WingGeom(GeomBase):
             d_2 = inter[i, idx[i][1]]
             d_t = d_1 + d_2
 
-            cst_u = d_1/d_t * coeff_u[idx[i][0], :] + d_2/d_t * coeff_u[idx[i][1], :]
-            cst_l = d_1/d_t * coeff_l[idx[i][0], :] + d_2/d_t * coeff_l[idx[i][1], :]
+            cst_u = (d_t-d_1)/d_t * coeff_u[idx[i][0], :] + (d_t-d_2)/d_t * coeff_u[idx[i][1], :]
+            cst_l = (d_t-d_1)/d_t * coeff_l[idx[i][0], :] + (d_t-d_2)/d_t * coeff_l[idx[i][1], :]
 
             x_i = np.linspace(0, 1, 40)
             y_u = cst.cst(x_i, cst_u)
@@ -207,7 +210,7 @@ class WingGeom(GeomBase):
     def airfoil_interp_unscaled(self):
         return FittedCurve(quantify=len(self.airfoil_interp[1]),
                            points=self.airfoil_interp[0][child.index],
-                           hidden=True)
+                           hidden=False)
 
     @Part
     def airfoils(self):
@@ -245,21 +248,6 @@ class WingGeom(GeomBase):
                              vector2=Vector(0, 0, 1),
                              mesh_deflection=1e-4,)
 
-    @Part
-    def avl_sections(self):
-        return avl.SectionFromCurve(quantify=len(self.profile_order[0]),            # It looks weird on the display
-                                    curve_in=self.profile_order[0][child.index])
-
-    @Part
-    def avl_surface(self):
-        return avl.Surface(name='Wing',
-                           n_chordwise=12,
-                           chord_spacing=avl.Spacing.cosine,
-                           n_spanwise=20,
-                           span_spacing=avl.Spacing.cosine,
-                           y_duplicate=self.position.point[1],  # Always mirrored. self.is_mirrored does not appear
-                           sections=self.avl_sections)          # curvature: self.avl_sections);
-                                                                # flat: sections=self.profile_order[1])
 
 
 if __name__ == '__main__':
