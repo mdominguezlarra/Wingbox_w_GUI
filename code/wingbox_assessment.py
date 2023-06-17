@@ -75,8 +75,14 @@ class WingBoxAssessment(GeomBase):
         'Al7475-T61-1.524-S',  # SPAR CAPS
         'Al7475-T61-1.524-S'])  # RIB CAPS
 
-    # Stringers cross-sections
-    str_cs = Input()
+    tc_select = Input('t')  # TENSION OR COMPRESSION SELECTOR
+
+    # Cross-sections properties. Inputs are either dimensions of a rectangle, or mechanical properties.
+    # e.g. 'dims': [length, height]
+    secs = Input([[[1, 1], 'dims'],  # STRINGERS
+                  [[1, 1], 'dims'],  # SPAR CAPS
+                  [[1, 0.0833, 0.0833, 2.2533], 'moms']])  # RIB CAPS
+    # e.g. 'moms': [area,  I1,     I2,      J]
 
     # BCs
     bcs = Input()
