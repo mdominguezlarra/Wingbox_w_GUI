@@ -1,6 +1,9 @@
 from parapy.core import *
 from parapy.geom import *
 from parapy.lib.nastran.entry import *
+from parapy.lib.nastran.writer import *
+from parapy.mesh.salome import Mesh
+from parapy.mesh.salome.controls import TriMefisto
 from .generalfuse import GeneralFuse
 from parapy.mesh import *
 from parapy.lib.nastran import *
@@ -18,7 +21,7 @@ def mat_props_finder(mat_str: str):
     id = '-'.join(split_mat_str)
 
     # Finding the correct mechanical properties.
-    path = 'inputs/materials.csv'
+    path = 'code/input_data/materials.csv'
     with open(path, 'r', newline='') as file:
         mat_file = csv.reader(file)
         for idx, row in enumerate(mat_file):
@@ -48,6 +51,8 @@ class FEMFileGenerator(GeomBase):
         'Al7475-T61-1.524-S',  # SPAR CAPS
         'Al7475-T61-1.524-S'])  # RIB CAPS
 
+    tc_select = Input('t')  # TENSIOR OR COMPRESSION SELECTOR
+
     # Same material is used throughout all elements of a component.
     @Input
     def mat_props(self):
@@ -56,28 +61,34 @@ class FEMFileGenerator(GeomBase):
         for mat in mat_in:
             mat_lst.append(mat_props_finder(mat))
 
-        return mat_lst[0:3], mat_lst[3:]  # 2D props and 1D props lists.
+        return mat_lst  # 2D props and 1D props lists.
 
     # 1D elements section selector.
     @Input
     def sec_props(self):
         return 1
 
-    @Part
-    def general_shape(self):
-        return GeneralFuse(tools=self.wing.STEP_node_list)
-
     @Attribute
     def FEM_entries(self):
-        mat = self.mat_props[0][0]
-        mat_FEM = MAT1(E=mat['Et'], NU=mat['nu'])
+        # Defining materials to be used.
+        mat_2d = [[MAT1(E=mat['E' + self.tc_select], NU=mat['nu'], RHO=mat['rho']), mat['t']] for idx, mat in
+                  enumerate(self.mat_props) if idx <= 2]
+        mat_1d = [MAT1(E=mat['E' + self.tc_select], NU=mat['nu']) for idx, mat in enumerate(self.mat_props) if idx > 2]
 
+        # Defining element properties.
+        props_2d = [PSHELL(MID1=mat[0], T=mat[1], MID2=mat[0], MID3=mat[0]) for mat in mat_2d]
+        props_1d = [PBAR()]
 
-        # PSHELL
-        # EXAMPLE :::
+        # Creating grid for the FEM model.
+        mesh_id_to_GRID = {}
+        for node in self.mesh.grid.nodes:
+            grid = GRID(ID=node.mesh_id, X1=node.x, X2=node.y, X3=node.z)
+            mesh_id_to_GRID[node.mesh_id] = grid
 
         # CQUAD4 :::
-        # EXAMPLE :::
+        # USE CTRIA3 FOR TRIANGULAR ELEMENTS?
+
+        # PBARL
 
         # CBAR :::
 
@@ -85,12 +96,33 @@ class FEMFileGenerator(GeomBase):
 
         # SPC1 ::: DEFINE RESTRICTION IN ALL SIX DEGREES OF FREEDOM.
 
-        return mat_FEM
+        return props_2d
+
+    # @Attribute
+    # def FEM_writer(self):
+    #     return Writer(self.primitives,
+    #                   template_path="bdf_templates/rectangular_plate_template.bdf",
+    #                   template_values={"SID": SID})
 
     @Attribute
-    def FEM_writer(self):
+    def tools_list(self):
+        lst = [rib for rib in self.wing.ribs.ribs]
+        lst.extend([self.wing.skin.skin, self.wing.spars.spars[0].total_cutter, self.wing.spars.spars[1].total_cutter])
+        return lst
 
-        return 1
+    @Part
+    def general_shape(self):
+        return GeneralFuse(tools=self.tools_list)
+
+    @Part
+    def mesh_seed(self):
+        return TriMefisto(shape_to_mesh=self.general_shape,
+                          max_area=0.1)
+
+    @Part
+    def general_mesh(self):
+        return Mesh(shape_to_mesh=self.general_shape,
+                    controls=[self.mesh_seed])
 
 
 if __name__ == '__main__':
