@@ -1,0 +1,32 @@
+{% extends "template.bdf" %}
+{% block general %}
+{{ super() -}}
+$ Some custom text
+{%- endblock %}
+
+{% block executive %}
+{{ super() -}}
+$ Custom statements
+{%- endblock %}
+
+{%- block case_control -%}
+{{ super() }}
+
+SOL 101
+
+CEND
+
+ECHO=BOTH
+
+DISP=ALL
+
+SPCF=ALL
+
+LOAD={{SID}}
+
+TITLE=EXAMPLE 1
+
+SUBTITLE=CONTILEVER BEAM
+
+LABEL=DISTRIBUTED LOAD AND END MOMENT
+{% endblock %}

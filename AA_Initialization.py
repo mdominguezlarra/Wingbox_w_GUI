@@ -109,6 +109,28 @@ mat_1D = [material_name(df_i, 26),     # STRINGERS
 
 # INITIALIZATION
 
+# display(WingBoxAssessment(root_chord=root_chord,
+#                           spans=spans,
+#                           tapers=tapers,
+#                           sweeps=sweeps,
+#                           dihedrals=dihedrals,
+#                           twist=twist,
+#                           airfoil_sections=airfoil_sections,
+#                           airfoil_names=airfoil_names,
+#                           case_settings=case_settings,
+#                           weight=weight,
+#                           speed=speed,
+#                           height=height,
+#                           rib_idx=rib_idx,
+#                           front_spar_loc=front_spar_loc,
+#                           rear_spar_loc=rear_spar_loc,
+#                           stringer_idx=stringer_idx,
+#                           TE_ribs_gap=TE_ribs_gap,
+#                           TE_skin_gap=TE_skin_gap,
+#                           mat_2D=mat_2D,
+#                           mat_1D=mat_1D))
+#                             # Add remaining inputs
+
 display(WingBoxAssessment(root_chord=root_chord,
                           spans=spans,
                           tapers=tapers,
@@ -130,4 +152,3 @@ display(WingBoxAssessment(root_chord=root_chord,
                           mat_2D=mat_2D,
                           mat_1D=mat_1D))
                             # Add remaining inputs
-

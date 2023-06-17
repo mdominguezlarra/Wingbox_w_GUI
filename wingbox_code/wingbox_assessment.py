@@ -58,6 +58,9 @@ class WingBoxAssessment(GeomBase):
 
     # FEM MODEL INPUTS
     # AERODYNAMIC LOADS ARE AUTOMATICALLY CALCULATED USING GET_FORCES.
+    # File path for .bdf file.
+    file_path = Input('wingbox_code/bdf_files/wingbox_bulkdata.bdf')
+
     # Number of elements
     num_elem_FEM = Input()
 
@@ -113,8 +116,11 @@ class WingBoxAssessment(GeomBase):
     def FEMFile(self):
         return FEMFileGenerator(wing=self.wingbox)
 
+    @Attribute
+    def FEMWrite(self):
+        return self.FEMFile.FEM_writer.write(self.file_path)
+
 
 if __name__ == '__main__':
     from parapy.gui import display
-
     display(WingBoxAssessment())
