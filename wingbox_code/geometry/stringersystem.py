@@ -2,6 +2,7 @@ from parapy.core import *
 from parapy.geom import *
 import numpy as np
 from .geometry_tools.cutter import Cutter
+from .stringer import Stringer
 
 
 def division_lst(nested_arr):
@@ -20,31 +21,6 @@ def division_lst(nested_arr):
         div_lst.append(div_lst_pos)
 
     return div_lst
-
-
-def stringer_finder(edges, up=True):
-
-    edge_start = []
-    idx = []
-
-    for i in edges:
-        if i.start.y > i.end.y:
-            edge_start.append(i.end)
-        else:
-            edge_start.append(i.start)
-
-    y_sorted = sorted(edge_start, key=lambda ypos: ypos.y)
-
-    for i in range(int(len(edge_start)/2)):
-        z_sorted = sorted(y_sorted[2*i:2*i+2], key=lambda zpos: zpos.z)
-        if up:
-            idx.append(edge_start.index(z_sorted[1]))
-        else:
-            idx.append(edge_start.index(z_sorted[0]))
-
-    stringer = [edges[i] for i in idx]
-
-    return stringer
 
 
 class StringerSystem(GeomBase):
@@ -129,58 +105,20 @@ class StringerSystem(GeomBase):
                           hidden=True)
 
     @Part
-    def stringer_lines_up(self):
-        return LineSegment(quantify=len(self.stringer_hooks[0]),
-                           start=self.stringer_hooks[0][child.index][0],
-                           end=self.stringer_hooks[0][child.index][1],
-                           hidden=True)
+    def top_stringers(self):
+        return Stringer(quantify=len(self.stringer_hooks[0]),
+                        start=self.stringer_hooks[0][child.index][0],
+                        end=self.stringer_hooks[0][child.index][1],
+                        wing=self.wing,
+                        up=True,
+                        hidden=False)
 
     @Part
-    def stringer_lines_down(self):
-        return LineSegment(quantify=len(self.stringer_hooks[1]),
-                           start=self.stringer_hooks[1][child.index][0],
-                           end=self.stringer_hooks[1][child.index][1],
-                           hidden=True)
-
-    @Part
-    def stringer_plane_up(self):
-        return RuledSurface(quantify=len(self.stringer_lines_up),
-                            curve1=TranslatedCurve(curve_in=self.stringer_lines_up[child.index],
-                                                   displacement=Vector(0, 0, 25)),
-                            curve2=TranslatedCurve(curve_in=self.stringer_lines_up[child.index],
-                                                   displacement=Vector(0, 0, -25)),
-                            hidden=True)
-
-    @Part
-    def stringer_intersect_up(self):
-        return IntersectedShapes(quantify=len(self.stringer_plane_up),
-                                 shape_in=self.wing.right_wing,
-                                 tool=self.stringer_plane_up[child.index],
-                                 hidden=True)
-
-    @Part
-    def stringers_up(self):
-        return Wire(quantify=len(self.stringer_intersect_up),
-                    curves_in=stringer_finder(self.stringer_intersect_up[child.index].edges, True))
-
-    @Part
-    def stringer_plane_down(self):
-        return RuledSurface(quantify=len(self.stringer_lines_down),
-                            curve1=TranslatedCurve(curve_in=self.stringer_lines_down[child.index],
-                                                   displacement=Vector(0, 0, 25)),
-                            curve2=TranslatedCurve(curve_in=self.stringer_lines_down[child.index],
-                                                   displacement=Vector(0, 0, -25)),
-                            hidden=True)
-
-    @Part
-    def stringer_intersect_down(self):
-        return IntersectedShapes(quantify=len(self.stringer_plane_down),
-                                 shape_in=self.wing.right_wing,
-                                 tool=self.stringer_plane_down[child.index],
-                                 hidden=True)
-
-    @Part
-    def stringers_down(self):
-        return Wire(quantify=len(self.stringer_intersect_down),
-                    curves_in=stringer_finder(self.stringer_intersect_down[child.index].edges, False))
+    def bottom_stringers(self):
+        return Stringer(quantify=len(self.stringer_hooks[1]),
+                        start=self.stringer_hooks[1][child.index][0],
+                        end=self.stringer_hooks[1][child.index][1],
+                        wing=self.wing,
+                        up=False,
+                        hidden=False)
 

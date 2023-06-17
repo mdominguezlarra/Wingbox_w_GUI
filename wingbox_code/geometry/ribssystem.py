@@ -3,6 +3,7 @@ from parapy.geom import *
 from .elements.rib import Rib
 from .geometry_tools.cutting_planes import CuttingPlanes
 from .geometry_tools.cutter import Cutter
+import numpy as np
 
 
 class RibsSystem(GeomBase):
@@ -70,11 +71,20 @@ class RibsSystem(GeomBase):
 
         ribs = [self.wing.airfoils[0].scaled_foil]
 
+        frac_span = np.array(self.wing.spans)/self.wing.spans[-1]
+
+        for i in range(1, len(self.wing.airfoils[1: -1])):
+            if self.wing.airfoil_sections[i] in frac_span:
+                ribs.append(self.wing.airfoils[i].scaled_foil)
+
         for i in self.wing.inter_airfoils:
             ribs.append(i.scaled_foil)
 
         ribs.append(self.wing.airfoils[-1].scaled_foil)
-        return ribs
+
+        ribs_ordered = sorted(ribs, key=lambda rib: rib.start.y)
+
+        return ribs_ordered
 
     @Part
     def essential_rib_cutter(self):

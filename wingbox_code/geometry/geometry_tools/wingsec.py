@@ -1,11 +1,12 @@
 from parapy.core import *
 from parapy.geom import *
+from parapy.core.validate import *
 import numpy as np
 
 
 class WingSec(GeomBase):
 
-    span = Input(20)         # m
+    span = Input(20, validator=Positive(incl_zero=True))         # m
     root_chord = Input(5)    # m
     taper = Input(0.3)       # -
     sweep = Input(30)        # deg

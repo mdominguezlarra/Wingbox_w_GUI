@@ -29,24 +29,28 @@ class SparSystem(GeomBase):
         rear_loop = []
 
         for i in air_sec:
-            frac_span = np.append(frac_span, i)
-            order_sp = np.sort(frac_span)
-            order = np.argsort(frac_span)
-            pos = np.where(order_sp == i)[0][0]
+            if i not in frac_span:
+                frac_span = np.append(frac_span, i)
+                span_order = np.sort(frac_span)
+                order = np.argsort(frac_span)
+                pos = np.where(span_order == i)[0][0]
 
-            front_loc.append(0)
-            rear_loc.append(0)
+                front_loc.append(0)
+                rear_loc.append(0)
 
-            front_loop = list([front_loc[k] for k in order])
-            rear_loop = list([rear_loc[k] for k in order])
+                front_loop = list([front_loc[k] for k in order])
+                rear_loop = list([rear_loc[k] for k in order])
 
-            front_loop[pos] = front_loop[pos - 1] + (i - order_sp[pos - 1]) \
-                              * (front_loop[pos + 1] - front_loop[pos - 1]) / (order_sp[pos + 1] - order_sp[pos - 1])
-            rear_loop[pos] = rear_loop[pos - 1] + (i - order_sp[pos - 1]) \
-                             * (rear_loop[pos + 1] - rear_loop[pos - 1]) / (order_sp[pos + 1] - order_sp[pos - 1])
+                # distances
+                dt = span_order[pos+1] - span_order[pos-1]
+                d1 = i - span_order[pos-1]
+                d2 = span_order[pos+1] - i
 
-            front_loc[-1] = front_loop[pos]
-            rear_loc[-1] = rear_loop[pos]
+                front_loop[pos] = 1/dt * ((dt - d1) * front_loop[pos - 1] + (dt - d2) * front_loop[pos + 1])
+                rear_loop[pos] = 1/dt * ((dt - d1) * rear_loop[pos - 1] + (dt - d2) * rear_loop[pos + 1])
+
+                front_loc[-1] = front_loop[pos]
+                rear_loc[-1] = rear_loop[pos]
 
         return front_loop, rear_loop
 

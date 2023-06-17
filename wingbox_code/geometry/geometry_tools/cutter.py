@@ -35,6 +35,18 @@ class Cutter(GeomBase):
 
         return starting_points, chords
 
+    # Intersections and web definitions.
+    @Attribute
+    def cutter_intersecs(self):
+        intersections = []
+        for i in range(len(self.cutter_planes)):
+            edg = IntersectedShapes(shape_in=self.cutter_planes[i].plane_final_pos,
+                                    tool=self.airfoils_as_shapes[i],
+                                    hidden=True)
+            intersections.append(edg.edges)
+
+        return intersections
+
     # Defining airfoils as surfaces to cut.
     @Part
     def airfoil_planes(self):
@@ -66,18 +78,6 @@ class Cutter(GeomBase):
                              chord_percentage=(self.cut_loc[child.index] if isinstance(self.cut_loc, list)
                                                else self.cut_loc_ext[child.index]),
                              hidden=True)
-
-    # Intersections and web definitions.
-    @Attribute
-    def cutter_intersecs(self):
-        intersections = []
-        for i in range(len(self.cutter_planes)):
-            edg = IntersectedShapes(shape_in=self.cutter_planes[i].plane_final_pos,
-                                    tool=self.airfoils_as_shapes[i],
-                                    hidden=True)
-            intersections.append(edg.edges)
-
-        return intersections
 
     @Part
     def cutter_intersec_curves(self):

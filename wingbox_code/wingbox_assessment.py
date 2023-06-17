@@ -12,16 +12,16 @@ class WingBoxAssessment(GeomBase):
     # ALL INPUTS ARE ESTABLISHED HERE
     # INPUTS MUST BE ON SI UNITS, UNLESS STATED OTHERWISE IN COMMENTS.
     # AIRCRAFT GENERAL INPUTS
-    weight = Input(validator=Positive)  # kg.
-    speed = Input(validator=Positive)  # m/s.
-    height = Input()  # ft.
+    weight = Input(validator=Positive())  # kg.
+    speed = Input(validator=Positive())  # m/s.
+    height = Input(validator=Positive())  # ft.
 
     # LOAD CASES
     case_settings = Input([['fixed_aoa', 'fixed_cl'], ['alpha', 'CL'], [3, 0.3]])
 
     # WING GEOMETRY
     # For 1st section
-    root_chord = Input(7)  # m.
+    root_chord = Input(validator=Positive())  # m.
 
     # For the rest (I have a doubt, how will we solve if the number of inputs is not coherent??)
     spans = Input([0, 8, 13, 20])  # m. wrt the root position
@@ -53,8 +53,8 @@ class WingBoxAssessment(GeomBase):
                           [3, 2]])
 
     # Trailing edge gaps for skin and ribs
-    TE_ribs_gap = Input(0.8)  # Must be after the rearmost rear_spar_loc but less than 1
-    TE_skin_gap = Input(0.85)  # Must be after the rearmost rear_spar_loc but less than 1
+    TE_ribs_gap = Input(0.8, validator=Range(0.75, 1))  # Must be after the rearmost rear_spar_loc but less than 1
+    TE_skin_gap = Input(0.85, validator=Range(0.75, 1))  # Must be after the rearmost rear_spar_loc but less than 1
 
     # FEM MODEL INPUTS
     # AERODYNAMIC LOADS ARE AUTOMATICALLY CALCULATED USING GET_FORCES.

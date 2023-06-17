@@ -169,7 +169,7 @@ case_settings = [appender(df_i, 2, 'load case name', str),
                  appender(df_i, 4, 'load case value', (float, int))]
 weight = df_i.iloc[6, 1]
 speed = df_i.iloc[7, 1]
-height = df_i.iloc[8, 1]
+height = df_i.iloc[8, 1] * 3.28084      # m to ft
 
 # Type check
 type_warning(weight, 'weight', (float, int))
