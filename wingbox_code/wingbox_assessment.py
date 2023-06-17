@@ -17,10 +17,7 @@ class WingBoxAssessment(GeomBase):
     height = Input(1000)  # ft.
 
     # LOAD CASES
-    case_settings = Input([('fixed_aoa', {'alpha': 3}),
-                           ('fixed_cl', {'alpha': avl.Parameter(name='alpha',
-                                                                value=0.3,
-                                                                setting='CL')})])
+    case_settings = Input([['fixed_aoa', 'fixed_cl'], ['alpha', 'CL'], [3, 0.3]])
 
     # WING GEOMETRY
     # For 1st section
@@ -104,7 +101,7 @@ class WingBoxAssessment(GeomBase):
         return GetForces(quantify=len(self.case_settings[2]),
                          input_case=self.analysis,
                          num_case=child.index + 1,
-                         flight_cond=self.analysis.flight_cond[child.index])
+                         flight_cond=self.analysis.flight_cond)
 
     @Part
     def FEMFile(self):
