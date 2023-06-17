@@ -3,6 +3,11 @@
 # WINGBOX ANALYSIS INITIALIZATION FILE #
 ########################################
 
+# Murilo Caetano da Silva
+#           &
+# Mikel Dominguez Larrabeiti
+#       June 2023
+
 # Run this file once the desired user inputs have been set
 
 
@@ -231,6 +236,10 @@ length_load = [len(i) for i in case_settings]
 
 coherence_warning(length_load, len(case_settings[0]), 'load cases', 'Load Cases')
 
+# Print inputs
+# print(root_chord, spans, tapers, sweeps, dihedrals, twist, airfoil_sections, airfoil_names, case_settings, weight,
+#       speed, height, rib_idx, front_spar_loc, rear_spar_loc, stringer_idx, TE_ribs_gap, TE_skin_gap,
+#       mat_2D, mat_1D)
 
 # INITIALIZATION
 

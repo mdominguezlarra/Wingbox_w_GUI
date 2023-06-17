@@ -122,8 +122,6 @@ class WingGeom(GeomBase):
 
         inter, idx, p, s_span, secs = intersection_airfoil(self.spans, self.airfoil_sections)
 
-        print(idx[0])
-        print(idx[1])
         # Linear interpolation
         airfoils = []
         for i in range(p):
