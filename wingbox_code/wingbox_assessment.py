@@ -1,6 +1,5 @@
 from parapy.core import *
 from parapy.geom import *
-from kbeutils import avl
 from .geometry.geometry_tools.winggeom import WingGeom
 from .geometry.wingbox import WingBox
 from .analysis_tools.avl_analysis import AvlAnalysis
