@@ -1,4 +1,5 @@
 from parapy.core import *
+from parapy.geom import *
 import numpy as np
 
 
@@ -21,7 +22,8 @@ class FlightCondition(Base):
         conv_cnsts = [0.453592, 0.3048, 0.3048, np.NaN, 47.8803, 515.379, 0.3048, 14.5939/0.3048, 0.3048**2]
 
         # Table values are in imperial units.
-        atmos_matrix = np.genfromtxt('code/input_data/atmos_params.csv', delimiter=',', dtype=float, skip_header=True)
+        atmos_matrix = np.genfromtxt('wingbox_code/analysis_tools/avl_tools/atmos_params.csv', delimiter=',',
+                                     dtype=float, skip_header=True)
         atmos_matrix[:, 0] *= 1e3  # Converting from flight level to height.
         atmos_matrix[:, 8] *= 1e-6  # Converting from 10^(-6) slug/ft.s to slug/ft.s
 
@@ -47,7 +49,7 @@ class FlightCondition(Base):
 
         # flight params: weight [kg], speed [m/s], height [m], temperature [K], pressure [Pa],
         #                density [kg/m3], sound speed [m/s], viscosity [kg/ms],
-        #                kinematic viscosity [m2/s], Mach, units
+        #                kinematic viscosity [m2/s], Mach [-], units [SI or imp]
         flight_params = [self.weight, self.speed] + atmos_vector + [self.speed/atmos_vector[4], self.units]
         return flight_params
 

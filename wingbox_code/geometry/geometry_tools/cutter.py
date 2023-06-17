@@ -1,7 +1,7 @@
 from parapy.core import *
 from parapy.geom import *
 from .cutting_planes import CuttingPlanes
-from code.geometry.elements.spar import Spar
+from wingbox_code.geometry.elements.spar import Spar
 
 
 class Cutter(GeomBase):
