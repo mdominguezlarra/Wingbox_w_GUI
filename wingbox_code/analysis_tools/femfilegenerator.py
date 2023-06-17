@@ -6,6 +6,7 @@ from parapy.mesh.salome import Mesh, Tri
 from .generalfuse import GeneralFuse
 import numpy as np
 import csv
+import os
 
 
 # Function to find the mechanical properties of a material given a characteristic string.
@@ -19,7 +20,7 @@ def mat_props_finder(mat_str: str):
     id = '-'.join(split_mat_str)
 
     # Finding the correct mechanical properties.
-    path = 'code/input_data/materials.csv'
+    path = 'wingbox_code/input_data/materials.csv'
     with open(path, 'r', newline='') as file:
         mat_file = csv.reader(file)
         for idx, row in enumerate(mat_file):
@@ -90,28 +91,32 @@ class FEMFileGenerator(GeomBase):
     def tools_list(self):
         lst = [rib for rib in self.wing.ribs.ribs]
         lst.extend([self.wing.skin.skin, self.wing.spars.spars[0].total_cutter, self.wing.spars.spars[1].total_cutter])
+        lst = self.wing.skin.skin
         return lst
 
-    @Part
-    def general_shape(self):
-        return GeneralFuse(tools=self.tools_list)
+    # @Part
+    # def general_shape(self):
+    #     return GeneralFuse(tools=self.tools_list)
 
     @Part
     def mesh_seed(self):
-        return Tri(shape_to_mesh=self.general_shape,
+        return Tri(shape_to_mesh=self.tools_list,
                    min_size=0.01,
                    max_size=0.1,
                    only_2d=False,
                    quad_dominant=False)
 
     @Part
-    def general_mesh(self):
-        return Mesh(shape_to_mesh=self.general_shape,
+    def mesh(self):
+        return Mesh(shape_to_mesh=self.tools_list,
                     controls=[self.mesh_seed])
 
     # NASTRAN file writing.
     @Attribute
     def FEM_entries(self):
+        entries = []
+        SID1 = 1
+
         # Defining materials to be used.
         mat_2d = [[MAT1(E=mat['E' + self.tc_select], NU=mat['nu'], RHO=mat['rho']), mat['t']] for idx, mat in
                   enumerate(self.mat_props) if idx <= 2]
@@ -122,25 +127,47 @@ class FEMFileGenerator(GeomBase):
                     mat, props in zip(mat_1d, sec_props_finder(self.secs))]
         props_2d = [PSHELL(MID1=mat[0], T=mat[1], MID2=mat[0], MID3=mat[0]) for mat in mat_2d]
 
-        # # Creating grid for the FEM model.
-        # mesh_id_to_GRID = {}
-        # for node in self.mesh.grid.nodes:
-        #     grid = GRID(ID=node.mesh_id, X1=node.x, X2=node.y, X3=node.z)
-        #     mesh_id_to_GRID[node.mesh_id] = grid
+        # Creating grid for the FEM model.
+        mesh_id_to_GRID = {}
+        for node in self.mesh.grid.nodes:
+            grid = GRID(ID=node.mesh_id, X1=node.x, X2=node.y, X3=node.z)
+            mesh_id_to_GRID[node.mesh_id] = grid
+            entries.append(grid)
 
-        # CQUAD4 :::
-        # USE CTRIA3 FOR TRIANGULAR ELEMENTS?
+        tris = []
+        for idx, face in enumerate(self.mesh.grid.faces):
+            nodes = [mesh_id_to_GRID[node.mesh_id] for node in face.nodes]
+            tri = CTRIA3(PID=props_2d[0], G1=nodes[0], G2=nodes[1], G3=nodes[2])
+            tris.append(tri)
 
-        # CBAR :::
+        pload = PLOAD2(SID=SID1, P=1000.0, EIDi=tris[300:302])
+        entries.append(pload)
 
-        # FORCE ::: DEFINE POINT LOADS.
+        # Placing displacement boundary conditions.
+        fix_top = self.wing.spars.spars[0].cutter_intersec_curves[0].control_points[0]
+        fix_bottom = self.wing.spars.spars[0].cutter_intersec_curves[0].control_points[1]
 
-        # SPC1 ::: DEFINE RESTRICTION IN ALL SIX DEGREES OF FREEDOM.
+        top_restr = self.mesh.grid.find_nodes_near(fix_top, radius=1e-1)
+        top_norms = [np.sqrt((point[0] - fix_top[0]) ** 2 + (point[1] - fix_top[1]) ** 2 +
+                             (point[2] - fix_top[2]) ** 2) for point in top_restr]
+        top_pt = top_restr[top_norms.index(min(top_norms))]
+        top_id = top_pt.mesh_id
 
-        return props_1d, props_2d
+        bottom_restr = self.mesh.grid.find_nodes_near(fix_bottom, radius=1e-1)
+        bottom_norms = [np.sqrt((point[0] - fix_bottom[0]) ** 2 + (point[1] - fix_bottom[1]) ** 2 +
+                             (point[2] - fix_bottom[2]) ** 2) for point in top_restr]
+        bottom_pt = bottom_restr[bottom_norms.index(min(bottom_norms))]
+        bottom_id = bottom_pt.mesh_id
 
-    # @Attribute
-    # def FEM_writer(self):
-    #     return Writer(self.primitives,
-    #                   template_path="bdf_templates/rectangular_plate_template.bdf",
-    #                   template_values={"SID": SID})
+        spc1 = SPC1(SID = 2, C=123456, Gi=[top_id, bottom_id])
+        entries.append(spc1)
+
+        return entries, SID1
+
+    @Attribute
+    def FEM_writer(self):
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        template_path = os.path.join(current_dir, '..', 'bdf_files', 'bdf_templates', 'wingbox_template.bdf')
+        return Writer(self.FEM_entries[0],
+                      template_path=template_path,
+                      template_values={"SID": self.FEM_entries[1]})
