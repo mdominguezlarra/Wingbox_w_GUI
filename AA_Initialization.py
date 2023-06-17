@@ -7,10 +7,9 @@
 
 
 import pandas as pd
-from kbeutils import avl
 import numpy as np
 from parapy.gui import display
-from code.wingbox_assessment import WingBoxAssessment
+from wingbox_code.wingbox_assessment import WingBoxAssessment
 
 
 def appender(data_frame, row_idx, rib_str=False):
@@ -70,24 +69,10 @@ airfoil_sections = appender(df_i, 17)
 df_i = dfs[1]
 
 # Loading Cases
-cases = appender(df_i, 4)
-case_settings = []
-for i in range(1, len(cases)+1):
-
-    if df_i.iloc[3, i] == 'alpha':
-        case_settings.append((df_i.iloc[2, i], {'alpha': cases[i]}))
-
-    elif df_i.iloc[3, i] == 'CL':
-        case_settings.append((df_i.iloc[2, i], {'alpha': avl.Parameter(name='alpha',
-                                                                       value=cases[i-1],
-                                                                       setting=df_i.iloc[2, i])}))
-
-    else:
-        print('Wrong alphabetic inputs! Create warning')
-
-weight = appender(df_i, 5)
-speed = appender(df_i, 6)
-height = appender(df_i, 7)
+case_settings = [appender(df_i, 2), appender(df_i, 3), appender(df_i, 4)]
+weight = df_i.iloc[6, 1]
+speed = df_i.iloc[7, 1]
+height = df_i.iloc[8, 1]
 
 
 # Sheet 3
@@ -132,6 +117,10 @@ display(WingBoxAssessment(root_chord=root_chord,
                           twist=twist,
                           airfoil_sections=airfoil_sections,
                           airfoil_names=airfoil_names,
+                          case_settings=case_settings,
+                          weight=weight,
+                          speed=speed,
+                          height=height,
                           rib_idx=rib_idx,
                           front_spar_loc=front_spar_loc,
                           rear_spar_loc=rear_spar_loc,
@@ -142,8 +131,3 @@ display(WingBoxAssessment(root_chord=root_chord,
                           mat_1D=mat_1D))
                             # Add remaining inputs
 
-                            # FIX SHEET 2
-                            # case_settings = case_settings,
-                            # weight = weight[0],
-                            # speed = speed[0],
-                            # height = height[0],

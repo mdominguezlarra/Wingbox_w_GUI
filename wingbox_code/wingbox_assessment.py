@@ -3,7 +3,6 @@ from parapy.geom import *
 from kbeutils import avl
 from .geometry.geometry_tools.winggeom import WingGeom
 from .geometry.wingbox import WingBox
-from .analysis_tools.flight_cond import FlightCondition
 from .analysis_tools.avl_analysis import AvlAnalysis
 from .analysis_tools.get_forces import GetForces
 from .analysis_tools.femfilegenerator import FEMFileGenerator
@@ -88,23 +87,9 @@ class WingBoxAssessment(GeomBase):
                                    'airfoil_sections', 'airfoil_names'])
 
     @Part
-    def flight_cond(self):
-        return FlightCondition(pass_down=['weight', 'speed', 'height'])
-
-    @Part
-    def avl_configuration(self):
-        return avl.Configuration(name='wing',
-                                 reference_area=self.wing_geom.planform_area,
-                                 reference_span=self.wing_geom.spans[-1] * 2,
-                                 reference_chord=self.wing_geom.mac,
-                                 reference_point=self.position.point,  # use quarter chord MAC?
-                                 surfaces=[self.wing_geom.avl_surface],
-                                 mach=self.flight_cond.atmos_calc[9])
-
-    @Part
     def analysis(self):
-        return AvlAnalysis(wing=self,
-                           case_settings=self.case_settings)
+        return AvlAnalysis(wing=self.wing_geom,
+                           pass_down=['case_settings', 'weight', 'speed', 'height'])
 
     # THIS IS THE WINGBOX ASSEMBLY, ALL COMPONENTS SHOULD GO INSIDE IT
     # ADD INPUTS AS THEY BECOME NECESSARY
@@ -116,10 +101,10 @@ class WingBoxAssessment(GeomBase):
 
     @Part
     def get_forces(self):
-        return GetForces(quantify=len(self.case_settings[0]),
+        return GetForces(quantify=len(self.case_settings[2]),
                          input_case=self.analysis,
                          num_case=child.index + 1,
-                         flight_cond=self.flight_cond)
+                         flight_cond=self.analysis.flight_cond[child.index])
 
     @Part
     def FEMFile(self):

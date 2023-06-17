@@ -17,7 +17,7 @@ class CurveDraw(GeomBase):
         # A warning of "airfoil not found" could be used here?/wrong order/format
         # SELIG FORMAT AIRFOILS NEED TO BE USED
 
-        name = 'code/input_data/airfoils/' + self.airfoil_name + '.dat'
+        name = 'wingbox_code/input_data/airfoils/' + self.airfoil_name + '.dat'
         file = np.loadtxt(name)
         points = []
         x_lst = []
