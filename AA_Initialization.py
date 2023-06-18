@@ -130,9 +130,9 @@ dfs = []
 for sheet_name in sheet_names:
     df = excel_file.parse(sheet_name)
     dfs.append(df)
-    # print(f"Sheet Name: {sheet_name}")
-    # print(df)
-    # print("\n")
+    print(f"Sheet Name: {sheet_name}")
+    print(df)
+    print("\n")
 
 # Sheet 1
 df_i = dfs[0]
@@ -197,12 +197,12 @@ type_warning(height, 'altitude', (float, int))
 df_i = dfs[2]
 
 # Structural Geometry
-front_spar_loc = appender(df_i, 2, 'front spar positions', float)
-rear_spar_loc = appender(df_i, 3, 'rear spar positions', float)
-rib_idx = appender(df_i, 4, 'ribs inputs', int, True)
+front_spar_loc = appender(df_i, 5, 'front spar positions', float)
+rear_spar_loc = appender(df_i, 6, 'rear spar positions', float)
+rib_idx = appender(df_i, 7, 'ribs inputs', int, True)
 
-top_stringers = appender(df_i, 5, 'stringer inputs', int, True)
-bottom_stringers = appender(df_i, 6, 'stringer inputs', int, True)
+top_stringers = appender(df_i, 8, 'stringer inputs', int, True)
+bottom_stringers = appender(df_i, 9, 'stringer inputs', int, True)
 
 if len(top_stringers) == len(bottom_stringers):                # Checking for coherence
     stringer_idx = [[top_stringers[i], bottom_stringers[i]]
@@ -218,16 +218,16 @@ else:
 
 # str_cs = df_i.iloc[7, 1]      # Placeholder until resolved
 
-TE_skin_gap = df_i.iloc[9, 1]
-TE_ribs_gap = df_i.iloc[10, 1]
+TE_skin_gap = df_i.iloc[11, 1]
+TE_ribs_gap = df_i.iloc[12, 1]
 
-mat_2D = [material_name(df_i, 25, 'skin'),
-          material_name(df_i, 21, 'spar web'),
-          material_name(df_i, 23, 'rib web')]
+mat_2D = [material_name(df_i, 31, 'skin'),
+          material_name(df_i, 27, 'spar web'),
+          material_name(df_i, 29, 'rib web')]
 
-mat_1D = [material_name(df_i, 26, 'stringers'),
-          material_name(df_i, 22, 'spar caps'),
-          material_name(df_i, 24, 'rib caps')]
+mat_1D = [material_name(df_i, 32, 'stringers'),
+          material_name(df_i, 28, 'spar caps'),
+          material_name(df_i, 30, 'rib caps')]
 
 # Type check
 type_warning(TE_ribs_gap, 'rib TE cut', (float, int))
