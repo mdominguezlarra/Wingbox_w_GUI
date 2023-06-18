@@ -44,8 +44,8 @@ def sec_props_finder(arg):
     for lst in arg:
         values, typ = lst
         if typ == 'dims':
-            l, a = values[0], values[0] / 2
-            h, b = values[1], values[1] / 2
+            l, a = values[0] * 1e-3, (values[0]/2) * 1e-3  # conversion to m.
+            h, b = values[1] * 1e-3, (values[1]/2) * 1e-3  # conversion to m.
 
             # Properties calculation.
             A = l * h  # Area.

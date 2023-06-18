@@ -77,7 +77,7 @@ class WingBoxAssessment(GeomBase):
     tc_select = Input('t')  # TENSION OR COMPRESSION SELECTOR
 
     # Cross-sections properties. Inputs are either dimensions of a rectangle, or mechanical properties.
-    # e.g. 'dims': [length, height]
+    # e.g. 'dims': [length, height] in mm
     secs = Input([[[1, 1], 'dims'],  # STRINGERS
                   [[1, 1], 'dims'],  # SPAR CAPS
                   [[1, 0.0833, 0.0833, 2.2533], 'moms']])  # RIB CAPS
