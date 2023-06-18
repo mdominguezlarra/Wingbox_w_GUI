@@ -7,6 +7,7 @@ from .analysis_tools.avl_analysis import AvlAnalysis
 from .analysis_tools.get_forces import GetForces
 from .analysis_tools.femfilegenerator import FEMFileGenerator
 import csv
+import os
 
 
 def type_warning(value, label, type_i):
@@ -35,7 +36,6 @@ def material_validation():
     thicknesses = []
 
     # Finding the correct mechanical properties.
-    cvs_units = [6.894757e6, 6.894757e6, 6.894757e6, 1, 515.378818, 6.894757e6, 6.894757e6, 6.894757e6]
     path = 'wingbox_code/input_data/materials.csv'
     with open(path, 'r', newline='') as file:
         mat_file = csv.reader(file)
@@ -110,14 +110,8 @@ class WingBoxAssessment(GeomBase):
     max_elem_size = Input(0.1)
 
     # Material definitions. Strings combination of 'alloy-temper-thickness-basis'. Thickness in mm.
-    mat_2D = Input([
-        'Al2024-T3-1.27-A',   # SKIN
-        'Al2024-T3-1.27-A',   # SPAR WEB
-        'Al2024-T3-1.27-A'], validator=IsInstance(list))  # RIBS
-    mat_1D = Input([
-        'Al7475-T61-1.524-S',  # STRINGERS
-        'Al7475-T61-1.524-S',  # SPAR CAPS
-        'Al7475-T61-1.524-S'], validator=IsInstance(list))  # RIB CAPS
+    mat_2D = Input(validator=IsInstance(list))  # RIBS
+    mat_1D = Input(validator=IsInstance(list))  # RIB CAPS
 
     tc_select = Input('t', validator=IsInstance(str))  # TENSION OR COMPRESSION SELECTOR
 
@@ -293,8 +287,8 @@ class WingBoxAssessment(GeomBase):
     @airfoil_names.validator
     def airfoil_names(self, names):
 
-        name_database = ['B29_root', 'rae5215',	'B707_root', 'B29_tip',	'rae5212',
-                         'B707_tip', 'SC2-0714', 'rae2822', 'B707_54c']
+        name_database_dat = os.listdir('wingbox_code/input_data/airfoils')
+        name_database = [name.split('.')[0] for name in name_database_dat]
 
         if len(names) != self.n_airfoils:
             msg = 'The number of airfoil names must be coherent with the number of airfoils.'\
@@ -305,6 +299,7 @@ class WingBoxAssessment(GeomBase):
             warn, msg = type_warning(names[i], 'airfoil names', str)
             if not warn:
                 return False, msg
+
             if (names[i] not in name_database) and not (len(names[i]) == 4 or len(names[i]) == 5):
                 msg = 'Invalid airfoil name. Make sure the name is correctly written or contains either 4 or 5 digits.'
                 return False, msg
