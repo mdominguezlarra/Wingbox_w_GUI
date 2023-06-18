@@ -85,4 +85,4 @@ class GetForces(Base):
             D_vector.append(0.5 * rho * (V ** 2) * areas[k] * cd_lst[k])
             M_vector.append(0.5 * rho * (V ** 2) * areas[k] * chords[k] * cm_c4_lst[k])
 
-        return L_vector, D_vector, M_vector
+        return list(zip(L_vector, D_vector, M_vector))

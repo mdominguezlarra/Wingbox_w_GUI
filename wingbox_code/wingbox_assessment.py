@@ -58,11 +58,11 @@ class WingBoxAssessment(GeomBase):
 
     # FEM MODEL INPUTS
     # AERODYNAMIC LOADS ARE AUTOMATICALLY CALCULATED USING GET_FORCES.
-    # File path for .bdf file.
-    file_path = Input('wingbox_code/bdf_files/wingbox_bulkdata.bdf')
-
-    # Number of elements
-    num_elem_FEM = Input()
+    # FEM controls.
+    bdf_file_path = Input('wingbox_code/bdf_files/wingbox_bulkdata.bdf')
+    quad_dominance = Input(False)  # or True
+    min_elem_size = Input(1)
+    max_elem_size = Input(10)
 
     # Material definitions. Strings combination of 'alloy-temper-thickness-basis'. Thickness in mm.
     mat_2D = Input([
@@ -114,11 +114,15 @@ class WingBoxAssessment(GeomBase):
 
     @Part
     def FEMFile(self):
-        return FEMFileGenerator(wing=self.wingbox)
+        return FEMFileGenerator(wing=self.wingbox,
+                                cases=self.get_forces,
+                                quad_dominance=self.quad_dominance,
+                                min_elem_size=self.min_elem_size,
+                                max_elem_size=self.max_elem_size)
 
     @Attribute
     def FEMWrite(self):
-        return self.FEMFile.FEMwriter.write(self.file_path)
+        return self.FEMFile.FEMwriter.write(self.bdf_file_path)
 
 
 if __name__ == '__main__':

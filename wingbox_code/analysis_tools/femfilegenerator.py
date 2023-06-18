@@ -63,6 +63,7 @@ def sec_props_finder(arg):
 
 class FEMFileGenerator(GeomBase):
     wing = Input()
+    cases = Input()
     mat_2D = Input([
         'Al2024-T3-1.27-A',  # SKIN
         'Al2024-T3-1.27-A',  # SPAR WEB
@@ -75,6 +76,11 @@ class FEMFileGenerator(GeomBase):
     secs = Input([[[1, 1], 'dims'],  # STRINGERS
                   [[1, 1], 'dims'],  # SPAR CAPS
                   [[1, 0.0833, 0.0833, 2.2533], 'moms']])  # RIB CAPS
+
+    # CONTROLS
+    quad_dominance = Input(False)  # or True
+    min_elem_size = Input(0.01)
+    max_elem_size = Input(0.1)
 
     # Same material is used throughout all elements of a component.
     @Input
@@ -89,43 +95,46 @@ class FEMFileGenerator(GeomBase):
     # Creation of parts for FEM mesh.
     @Attribute
     def tools_list(self):
-        lst = [rib for rib in self.wing.ribs.ribs]
-        lst.extend([self.wing.skin.skin, self.wing.spars.spars[0].total_cutter, self.wing.spars.spars[1].total_cutter])
-        lst = self.wing.skin.skin
-        return lst
+        STEP_lst = [self.wing.skin.skin, self.wing.spars.spars[0].total_cutter, self.wing.spars.spars[1].total_cutter]
+        STEP_lst.extend([rib for rib in self.wing.ribs.ribs])
+        STEP_lst.extend([stringer.stringers for stringer in self.wing.stringers.top_stringers])
+        STEP_lst.extend([stringer.stringers for stringer in self.wing.stringers.bottom_stringers])
+        return STEP_lst
 
-    # @Part
-    # def general_shape(self):
-    #     return GeneralFuse(tools=self.tools_list)
+    # TODO: LATER CHANGE TO GET JUST THE LIST FOR THE STEP FILE.
+    @Part
+    def general_shape(self):
+        return GeneralFuse(tools=self.tools_list)
 
     @Part
     def mesh_seed(self):
-        return Tri(shape_to_mesh=self.tools_list,
-                   min_size=0.01,
-                   max_size=0.1,
+        return Tri(shape_to_mesh=self.general_shape,
+                   min_size=self.min_elem_size,
+                   max_size=self.max_elem_size,
                    only_2d=False,
-                   quad_dominant=False)
+                   quad_dominant=self.quad_dominance)
 
     @Part
     def mesh(self):
-        return Mesh(shape_to_mesh=self.tools_list,
+        return Mesh(shape_to_mesh=self.general_shape,
                     controls=[self.mesh_seed])
 
     # NASTRAN file writing.
     @Attribute
-    def FEM_entries(self):
+    def FEMentries(self):
         entries = []
-        SID1 = 1
 
         # Defining materials to be used.
         mat_2d = [[MAT1(E=mat['E' + self.tc_select], NU=mat['nu'], RHO=mat['rho']), mat['t']] for idx, mat in
                   enumerate(self.mat_props) if idx <= 2]
         mat_1d = [MAT1(E=mat['E' + self.tc_select], NU=mat['nu']) for idx, mat in enumerate(self.mat_props) if idx > 2]
 
+
         # Defining element properties.
         props_1d = [PBAR(MID=mat, A=props[0], I1=props[1], I2=props[2], J=props[3]) for
                     mat, props in zip(mat_1d, sec_props_finder(self.secs))]
         props_2d = [PSHELL(MID1=mat[0], T=mat[1], MID2=mat[0], MID3=mat[0]) for mat in mat_2d]
+
 
         # Creating grid for the FEM model.
         mesh_id_to_GRID = {}
@@ -134,40 +143,80 @@ class FEMFileGenerator(GeomBase):
             mesh_id_to_GRID[node.mesh_id] = grid
             entries.append(grid)
 
-        tris = []
+
+        # Appending the finite elements to be used in the model.
+        # THERE IS SOME ERROR IN WHICH THE NUMBER OF FINITE ELEMENTS IN WAY HIGHER THAN THE NUMBER OF GRID POINTS.
+        elms = []
         for idx, face in enumerate(self.mesh.grid.faces):
             nodes = [mesh_id_to_GRID[node.mesh_id] for node in face.nodes]
-            tri = CTRIA3(PID=props_2d[0], G1=nodes[0], G2=nodes[1], G3=nodes[2])
-            tris.append(tri)
+            if len(nodes) == 3:
+                elm = CTRIA3(PID=props_2d[0], G1=nodes[0], G2=nodes[1], G3=nodes[2])
+                elms.append(elm)
+            elif len(nodes) == 4:
+                elm = CQUAD4(PID=props_2d[0], G1=nodes[0], G2=nodes[1], G3=nodes[2], G4=nodes[3])
+                elms.append(elm)
+        entries.extend(elms)
 
-        pload = PLOAD2(SID=SID1, P=1000.0, EIDi=tris[300:302])
-        entries.append(pload)
 
-        # Placing displacement boundary conditions.
+        # Defining forces and their locations for each case.
+        pload = []
+        load_cases = self.cases
+        for idx_SID, load_case in enumerate(load_cases):
+            p_lst = []
+            forces_moms = load_case.forces_moms
+            pos = load_case.forces_moms_pos
+
+            for idx_load, point in enumerate(pos):
+
+                # Find closest grid point
+                valid_pts = self.mesh.grid.find_nodes_near(point, radius=1)
+                norms = [np.sqrt((point[0] - valid_pt[0]) ** 2 + (point[1] - valid_pt[1]) ** 2 +
+                                 (point[2] - valid_pt[2]) ** 2) for valid_pt in valid_pts]
+                force_pt = valid_pts[norms.index(min(norms))]
+                force_id = force_pt.mesh_id
+
+                # Calculate force and append it to list.
+                L_load = FORCE(SID=idx_SID+1, G=force_id, F=forces_moms[idx_load][0], N1=0, N2=0, N3=1)
+                D_load = FORCE(SID=idx_SID+1, G=force_id, F=forces_moms[idx_load][1], N1=1, N2=0, N3=0)
+                M_load = Moment(SID=idx_SID+1, G=force_id, M=forces_moms[idx_load][2], N1=0, N2=1, N3=0)
+                load_lst = [L_load, D_load, M_load]
+                p_lst.extend(load_lst)
+
+            pload.extend(p_lst)
+
+        entries.extend(pload)
+
+
+        # Defining displacement boundary conditions.
         fix_top = self.wing.spars.spars[0].cutter_intersec_curves[0].control_points[0]
         fix_bottom = self.wing.spars.spars[0].cutter_intersec_curves[0].control_points[1]
 
-        top_restr = self.mesh.grid.find_nodes_near(fix_top, radius=1e-1)
+        top_restr = self.mesh.grid.find_nodes_near(fix_top, radius=1)
         top_norms = [np.sqrt((point[0] - fix_top[0]) ** 2 + (point[1] - fix_top[1]) ** 2 +
                              (point[2] - fix_top[2]) ** 2) for point in top_restr]
         top_pt = top_restr[top_norms.index(min(top_norms))]
         top_id = top_pt.mesh_id
 
-        bottom_restr = self.mesh.grid.find_nodes_near(fix_bottom, radius=1e-1)
+        bottom_restr = self.mesh.grid.find_nodes_near(fix_bottom, radius=1)
         bottom_norms = [np.sqrt((point[0] - fix_bottom[0]) ** 2 + (point[1] - fix_bottom[1]) ** 2 +
                              (point[2] - fix_bottom[2]) ** 2) for point in top_restr]
         bottom_pt = bottom_restr[bottom_norms.index(min(bottom_norms))]
         bottom_id = bottom_pt.mesh_id
 
-        spc1 = SPC1(SID=2, C=123456, Gi=[top_id, bottom_id])
-        entries.append(spc1)
+        spc1 = [SPC1(SID=idx+1, C=123456, Gi=[top_id, bottom_id]) for idx in range(len(self.cases))]
+        entries.extend(spc1)
 
-        return entries, SID1
+        with open('output.txt', 'w') as file:
+            # Write each element of the list as a separate line in the text file
+            for item in entries:
+                file.write(str(item) + '\n')
+
+        return entries
 
     @Attribute
     def FEMwriter(self):
         current_dir = os.path.dirname(os.path.abspath(__file__))
         template_path = os.path.join(current_dir, '..', 'bdf_files', 'bdf_templates', 'wingbox_template.bdf')
-        return Writer(self.FEM_entries[0],
+        return Writer(self.FEMentries,
                       template_path=template_path,
-                      template_values={"SID": self.FEM_entries[1]})
+                      template_values={'SID': 1})
