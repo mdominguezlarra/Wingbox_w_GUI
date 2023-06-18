@@ -73,7 +73,7 @@ class RibsSystem(GeomBase):
 
         frac_span = np.array(self.wing.spans)/self.wing.spans[-1]
 
-        for i in range(1, len(self.wing.airfoils[1: -1])):
+        for i in range(1, len(self.wing.airfoils[1:])):
             if self.wing.airfoil_sections[i] in frac_span:
                 ribs.append(self.wing.airfoils[i].scaled_foil)
 

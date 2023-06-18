@@ -25,8 +25,8 @@ class SparSystem(GeomBase):
         front_loc = [i for i in front_loc_copy]
         rear_loc = [i for i in rear_loc_copy]
 
-        front_loop = []
-        rear_loop = []
+        front_loop = front_loc
+        rear_loop = rear_loc
 
         for i in air_sec:
             if i not in frac_span:
