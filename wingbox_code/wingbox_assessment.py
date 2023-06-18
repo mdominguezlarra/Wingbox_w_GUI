@@ -118,7 +118,7 @@ class WingBoxAssessment(GeomBase):
 
     @Attribute
     def FEMWrite(self):
-        return self.FEMFile.FEM_writer.write(self.file_path)
+        return self.FEMFile.FEMwriter.write(self.file_path)
 
 
 if __name__ == '__main__':
