@@ -7,6 +7,7 @@ from .analysis_tools.avl_analysis import AvlAnalysis
 from .analysis_tools.get_forces import GetForces
 from .analysis_tools.femfilegenerator import FEMFileGenerator
 import csv
+import os
 
 
 def type_warning(value, label, type_i):
@@ -286,8 +287,8 @@ class WingBoxAssessment(GeomBase):
     @airfoil_names.validator
     def airfoil_names(self, names):
 
-        name_database = ['B29_root', 'rae5215',	'B707_root', 'B29_tip',	'rae5212',
-                         'B707_tip', 'SC2-0714', 'rae2822', 'B707_54c']
+        name_database_dat = os.listdir('wingbox_code/input_data/airfoils')
+        name_database = [name.split('.')[0] for name in name_database_dat]
 
         if len(names) != self.n_airfoils:
             msg = 'The number of airfoil names must be coherent with the number of airfoils.'\
@@ -298,6 +299,7 @@ class WingBoxAssessment(GeomBase):
             warn, msg = type_warning(names[i], 'airfoil names', str)
             if not warn:
                 return False, msg
+
             if (names[i] not in name_database) and not (len(names[i]) == 4 or len(names[i]) == 5):
                 msg = 'Invalid airfoil name. Make sure the name is correctly written or contains either 4 or 5 digits.'
                 return False, msg
