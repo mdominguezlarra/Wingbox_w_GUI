@@ -69,7 +69,7 @@ def material_name(data_frame, row_idx, label):
         warn = True
 
     elif data_frame.iloc[row_idx, 4] not in ['A', 'B', 'S']:
-        msg_m = 'Material Input D: Invalid material basis (input D) for {}.'.format(label)
+        msg_m = 'Material Input D: Invalid material basis for {}.'.format(label)
         warn = True
 
     if warn:

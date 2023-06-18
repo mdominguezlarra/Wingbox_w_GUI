@@ -6,6 +6,7 @@ from .geometry.wingbox import WingBox
 from .analysis_tools.avl_analysis import AvlAnalysis
 from .analysis_tools.get_forces import GetForces
 from .analysis_tools.femfilegenerator import FEMFileGenerator
+import csv
 
 
 def type_warning(value, label, type_i):
@@ -22,6 +23,36 @@ def type_warning(value, label, type_i):
         return False, msg
 
     return True, None
+
+
+def material_validation():
+
+    # List initialization
+    names = []
+    temper = []
+    basis = []
+    partial_name = []
+    thicknesses = []
+
+    # Finding the correct mechanical properties.
+    cvs_units = [6.894757e6, 6.894757e6, 6.894757e6, 1, 515.378818, 6.894757e6, 6.894757e6, 6.894757e6]
+    path = 'wingbox_code/input_data/materials.csv'
+    with open(path, 'r', newline='') as file:
+        mat_file = csv.reader(file)
+
+        for idx, row in enumerate(mat_file):
+            if idx != 0:
+                names.append(row[1])
+                temper.append(row[2])
+                basis.append(row[5])
+
+                row_str = row[1] + '-' + row[2] + '-' + row[5]
+                partial_name.append(row_str)
+
+                t_lims = [float(row[3]), float(row[4])]
+                thicknesses.append(t_lims)
+
+    return names, temper, basis, partial_name, thicknesses
 
 
 class WingBoxAssessment(GeomBase):
@@ -79,13 +110,13 @@ class WingBoxAssessment(GeomBase):
     mat_2D = Input([
         'Al2024-T3-1.27-A',   # SKIN
         'Al2024-T3-1.27-A',   # SPAR WEB
-        'Al2024-T3-1.27-A'])  # RIBS
+        'Al2024-T3-1.27-A'], validator=IsInstance(list))  # RIBS
     mat_1D = Input([
         'Al7475-T61-1.524-S',  # STRINGERS
         'Al7475-T61-1.524-S',  # SPAR CAPS
-        'Al7475-T61-1.524-S'])  # RIB CAPS
+        'Al7475-T61-1.524-S'], validator=IsInstance(list))  # RIB CAPS
 
-    tc_select = Input('t')  # TENSION OR COMPRESSION SELECTOR
+    tc_select = Input('t', validator=IsInstance(str))  # TENSION OR COMPRESSION SELECTOR
 
     # Cross-sections properties. Inputs are either dimensions of a rectangle, or mechanical properties.
     # e.g. 'dims': [length, height]
@@ -335,7 +366,7 @@ class WingBoxAssessment(GeomBase):
             if not warn:
                 return False, msg
 
-            if fs_locs[i] <= 0 or fs_locs[i] >=1:
+            if fs_locs[i] <= 0 or fs_locs[i] >= 1:
                 msg = 'Front spar locations must be limited between 0 and 1 to stay within the chord'
                 return False, msg
 
@@ -407,13 +438,85 @@ class WingBoxAssessment(GeomBase):
 
         return True
 
+    @mat_1D.validator
+    def mat_1D(self, materials):
 
+        for material in materials:
+            warn, msg = type_warning(material, 'material', str)
+            if not warn:
+                return False, msg
 
+            names, temper, basis, partial_names, thicknesses = material_validation()
+            txt = material.split('-')
+            t = float(txt[2]) / 25.4  # Conversion to imperial units
+            txt.pop(2)
+            material_partial = '-'.join(txt)
 
+            if txt[0] not in names:
+                msg = 'Material Input A: Invalid material name. Choose one between {}.'.format(set(names))
+                return False, msg
 
+            if txt[1] not in temper:
+                msg = 'Material Input B:Invalid material temper. Choose one between {}.'.format(set(temper))
+                return False, msg
 
+            if txt[2] not in basis:
+                msg = 'Material Input D: Invalid material basis. Choose one between {}.'.format(set(basis))
+                return False, msg
 
+            if material_partial not in partial_names:
+                msg = 'Material input has not been found. Make sure that the combination of A-B-C-D inputs' \
+                      ' is feasible.'
+                return False, msg
 
+            for i in range(len(partial_names)):
+                if material_partial == partial_names[i] and thicknesses[i][0] < t < thicknesses[i][1]:
+                    return True
+
+            msg = 'Material Input C: Invalid material thickness. Make sure it is between the specified limits.'
+            return False, msg
+
+        return
+
+    @mat_2D.validator
+    def mat_2D(self, materials):
+
+        for material in materials:
+            warn, msg = type_warning(material, 'material', str)
+            if not warn:
+                return False, msg
+
+            names, temper, basis, partial_names, thicknesses = material_validation()
+            txt = material.split('-')
+            t = float(txt[2]) / 25.4  # Conversion to imperial units
+            txt.pop(2)
+            material_partial = '-'.join(txt)
+
+            if txt[0] not in names:
+                msg = 'Material Input A: Invalid material name. Choose one between {}.'.format(set(names))
+                return False, msg
+
+            if txt[1] not in temper:
+                msg = 'Material Input B:Invalid material temper. Choose one between {}.'.format(set(temper))
+                return False, msg
+
+            if txt[2] not in basis:
+                msg = 'Material Input D: Invalid material basis. Choose one between {}.'.format(set(basis))
+                return False, msg
+
+            if material_partial not in partial_names:
+                msg = 'Material input has not been found. Make sure that the combination of A-B-C-D inputs' \
+                      ' is feasible.'
+                return False, msg
+
+            for i in range(len(partial_names)):
+                if material_partial == partial_names[i] and thicknesses[i][0] < t < thicknesses[i][1]:
+                    return True
+
+            msg = 'Material Input C: Invalid material thickness. Make sure it is between the specified limits.'
+            return False, msg
+
+        return
 
     # CHILDREN GENERATION
 
@@ -427,7 +530,6 @@ class WingBoxAssessment(GeomBase):
     def analysis(self):
         return AvlAnalysis(wing=self.wing_geom,
                            pass_down=['case_settings', 'weight', 'speed', 'height'])
-
 
     @Part
     def wingbox(self):
