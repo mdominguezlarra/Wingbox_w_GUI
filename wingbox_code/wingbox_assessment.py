@@ -12,16 +12,16 @@ class WingBoxAssessment(GeomBase):
     # ALL INPUTS ARE ESTABLISHED HERE
     # INPUTS MUST BE ON SI UNITS, UNLESS STATED OTHERWISE IN COMMENTS.
     # AIRCRAFT GENERAL INPUTS
-    weight = Input(validator=Positive())  # kg.
-    speed = Input(validator=Positive())  # m/s.
-    height = Input(validator=Positive())  # ft.
+    weight = Input(validator=And(Positive(), IsInstance((int, float))))  # kg.
+    speed = Input(validator=And(Positive(), IsInstance((int, float))))  # m/s.
+    height = Input(validator=IsInstance((int, float)))  # ft.
 
     # LOAD CASES
     case_settings = Input([['fixed_aoa', 'fixed_cl'], ['alpha', 'CL'], [3, 0.3]])
 
     # WING GEOMETRY
     # For 1st section
-    root_chord = Input(validator=Positive())  # m.
+    root_chord = Input(validator=And(Positive(), IsInstance((int, float))))  # m.
 
     # For the rest (I have a doubt, how will we solve if the number of inputs is not coherent??)
     spans = Input([0, 8, 13, 20])  # m. wrt the root position

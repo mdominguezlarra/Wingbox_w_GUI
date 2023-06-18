@@ -139,8 +139,8 @@ type_warning(incidence, 'incidence angle', (float, int))
 
 # Airfoil Placement
 
-airfoil_names_unordered = [str(airfoil) for airfoil in appender(df_i, 16, 'airfoil names', (str, int))]
-airfoil_sections_unordered = appender(df_i, 17, 'airfoil positions', (float, int))
+airfoil_names_unordered = [str(airfoil) for airfoil in appender(df_i, 19, 'airfoil names', (str, int))]
+airfoil_sections_unordered = appender(df_i, 20, 'airfoil positions', (float, int))
 
 airfoil_names = [x for _, x in sorted(zip(airfoil_sections_unordered, airfoil_names_unordered))]
 airfoil_sections = sorted(airfoil_sections_unordered)
