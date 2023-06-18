@@ -62,7 +62,7 @@ class WingBoxAssessment(GeomBase):
 
     # WING GEOMETRY
     # For 1st section
-    root_chord = Input(validator=And(Positive(), IsInstance((int, float))))  # m.
+    root_chord = Input()  # validator=And(Positive(), IsInstance((int, float))))  # m.
 
     # Following sections
     n_sections = Input(validator=And(Positive(), IsInstance(int)))
@@ -78,9 +78,9 @@ class WingBoxAssessment(GeomBase):
     airfoil_names = Input(validator=IsInstance(list))
 
     # AIRCRAFT GENERAL INPUTS
-    weight = Input(validator=And(Positive(), IsInstance((int, float))))  # kg.
-    speed = Input(validator=And(Positive(), IsInstance((int, float))))  # m/s.
-    height = Input(validator=IsInstance((int, float)))  # ft.
+    weight = Input()    #validator=And(Positive(), IsInstance((int, float))))  # kg.
+    speed = Input()     #validator=And(Positive(), IsInstance((int, float))))  # m/s.
+    height = Input()    #validator=IsInstance((int, float)))  # ft.
 
     # LOAD CASES
     n_loads = Input(validator=And(Positive(), IsInstance(int)))

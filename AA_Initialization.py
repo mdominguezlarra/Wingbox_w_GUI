@@ -106,7 +106,7 @@ def type_warning(value, label, type_i):
     Checks the type of the input and creates a warning if such a type is wrong
     :param value: input in question
     :param label: label for the input
-    :param type: required type(s)
+    :param type_i: required type(s)
     :return:
     """
     if not isinstance(value, type_i):
