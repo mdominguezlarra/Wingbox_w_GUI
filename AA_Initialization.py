@@ -337,5 +337,3 @@ display(WingBoxAssessment(root_chord=root_chord,
                           tc_select=tc_select,
                           quad_dominance=quad_dominance,
                           bcs=bcs))
-
-
