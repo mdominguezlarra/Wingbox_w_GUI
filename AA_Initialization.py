@@ -8,7 +8,10 @@
 # Mikel Dominguez Larrabeiti
 #       June 2023
 
-# Run this file once the desired user inputs have been set
+# Run this file once the desired user inputs have been set.
+
+# TIP: If you want to change the number of inputs, loads, or airfoils WITHIN the GUI, make sure to change
+#      the values n_sections, n_airfoils, or n_loads beforehand. Otherwise, error warnings will pop up.
 
 
 import pandas as pd
@@ -66,7 +69,7 @@ def material_name(data_frame, row_idx, label):
         warn = True
 
     elif data_frame.iloc[row_idx, 4] not in ['A', 'B', 'S']:
-        msg_m = 'Material Input D: Invalid material basis (input D) for {}.'.format(label)
+        msg_m = 'Material Input D: Invalid material basis for {}.'.format(label)
         warn = True
 
     if warn:
@@ -95,13 +98,24 @@ def coherence_warning(len_input_lst, reference, label, header):
         warnings.warn(msg)
         generate_warning('Warning: {}'.format(header), msg)
 
+    return
 
-def type_warning(value, label, type):
-    if not isinstance(value, type):
+
+def type_warning(value, label, type_i):
+    """
+    Checks the type of the input and creates a warning if such a type is wrong
+    :param value: input in question
+    :param label: label for the input
+    :param type: required type(s)
+    :return:
+    """
+    if not isinstance(value, type_i):
         # error message
-        msg = 'Wrong input type for {}, correct type is {}'.format(label, type)
+        msg = 'Wrong input type for {}, correct type is {}'.format(label, type_i)
         warnings.warn(msg)
         generate_warning('Warning: Wrong Input Type', msg)
+
+    return
 
 
 #######################################################################################################################
@@ -139,8 +153,8 @@ type_warning(incidence, 'incidence angle', (float, int))
 
 # Airfoil Placement
 
-airfoil_names_unordered = [str(airfoil) for airfoil in appender(df_i, 16, 'airfoil names', (str, int))]
-airfoil_sections_unordered = appender(df_i, 17, 'airfoil positions', (float, int))
+airfoil_names_unordered = [str(airfoil) for airfoil in appender(df_i, 19, 'airfoil names', (str, int))]
+airfoil_sections_unordered = appender(df_i, 20, 'airfoil positions', (float, int))
 
 airfoil_names = [x for _, x in sorted(zip(airfoil_sections_unordered, airfoil_names_unordered))]
 airfoil_sections = sorted(airfoil_sections_unordered)
@@ -152,6 +166,8 @@ if len(airfoil_names) != len(airfoil_sections):
     msg = 'Please input as many airfoil names as spanwise positions.'
     warnings.warn(msg)
     generate_warning('Warning: Airfoils', msg)
+
+n_airfoils = len(airfoil_names)
 
 if (0 or 1) not in airfoil_sections:
     # error message
@@ -169,7 +185,7 @@ case_settings = [appender(df_i, 2, 'load case name', str),
                  appender(df_i, 4, 'load case value', (float, int))]
 weight = df_i.iloc[6, 1]
 speed = df_i.iloc[7, 1]
-height = df_i.iloc[8, 1] * 3.28084      # m to ft
+height = df_i.iloc[8, 1]
 
 # Type check
 type_warning(weight, 'weight', (float, int))
@@ -229,13 +245,14 @@ lengths = [len(sweeps), len(dihedrals), len(rib_idx), len(stringer_idx), len(spa
            len(twist)-1, len(front_spar_loc)-1, len(rear_spar_loc)-1]
 
 coherence_warning(lengths, len(sweeps), 'wing sections', 'Wing Geometry')
+n_sections = len(sweeps)
 
 # Checking coherence for the load cases
 
 length_load = [len(i) for i in case_settings]
 
 coherence_warning(length_load, len(case_settings[0]), 'load cases', 'Load Cases')
-
+n_loads = len(case_settings[0])
 # Print inputs
 # print(root_chord, spans, tapers, sweeps, dihedrals, twist, airfoil_sections, airfoil_names, case_settings, weight,
 #       speed, height, rib_idx, front_spar_loc, rear_spar_loc, stringer_idx, TE_ribs_gap, TE_skin_gap,
@@ -244,13 +261,16 @@ coherence_warning(length_load, len(case_settings[0]), 'load cases', 'Load Cases'
 # INITIALIZATION
 
 display(WingBoxAssessment(root_chord=root_chord,
+                          n_sections=n_sections,
                           spans=spans,
                           tapers=tapers,
                           sweeps=sweeps,
                           dihedrals=dihedrals,
                           twist=twist,
+                          n_airfoils=n_airfoils,
                           airfoil_sections=airfoil_sections,
                           airfoil_names=airfoil_names,
+                          n_loads=n_loads,
                           case_settings=case_settings,
                           weight=weight,
                           speed=speed,

@@ -18,7 +18,7 @@ class CurveDraw(GeomBase):
         # SELIG FORMAT AIRFOILS NEED TO BE USED
 
         name = 'wingbox_code/input_data/airfoils/' + self.airfoil_name + '.dat'
-        file = np.loadtxt(name)
+        file = np.loadtxt(name, skiprows=1)
         points = []
         x_lst = []
         y_lst = []
