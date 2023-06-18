@@ -106,8 +106,8 @@ class WingBoxAssessment(GeomBase):
     # File path for .bdf file.
     bdf_file_path = Input('wingbox_code/bdf_files/wingbox_bulkdata.bdf')
     quad_dominance = Input(False)
-    min_elem_size = Input(1)
-    max_elem_size = Input(10)
+    min_elem_size = Input(0.1)
+    max_elem_size = Input(0.1)
 
     # Material definitions. Strings combination of 'alloy-temper-thickness-basis'. Thickness in mm.
     mat_2D = Input([

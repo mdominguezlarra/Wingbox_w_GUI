@@ -3,6 +3,7 @@ from parapy.geom import *
 from parapy.lib.nastran.entry import *
 from parapy.lib.nastran.writer import *
 from parapy.mesh.salome import Mesh, Tri
+from parapy.cae.nastran import read_pch
 from .generalfuse import GeneralFuse
 import numpy as np
 import csv
