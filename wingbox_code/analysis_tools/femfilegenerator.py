@@ -159,13 +159,13 @@ class FEMFileGenerator(GeomBase):
         bottom_pt = bottom_restr[bottom_norms.index(min(bottom_norms))]
         bottom_id = bottom_pt.mesh_id
 
-        spc1 = SPC1(SID = 2, C=123456, Gi=[top_id, bottom_id])
+        spc1 = SPC1(SID=2, C=123456, Gi=[top_id, bottom_id])
         entries.append(spc1)
 
         return entries, SID1
 
     @Attribute
-    def FEM_writer(self):
+    def FEMwriter(self):
         current_dir = os.path.dirname(os.path.abspath(__file__))
         template_path = os.path.join(current_dir, '..', 'bdf_files', 'bdf_templates', 'wingbox_template.bdf')
         return Writer(self.FEM_entries[0],
