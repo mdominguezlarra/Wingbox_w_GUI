@@ -260,6 +260,9 @@ n_loads = len(case_settings[0])
 
 # INITIALIZATION
 
+bcs = ['root_rib', '123456']  # (component, DOFs)
+
+
 display(WingBoxAssessment(root_chord=root_chord,
                           n_sections=n_sections,
                           spans=spans,
@@ -282,6 +285,7 @@ display(WingBoxAssessment(root_chord=root_chord,
                           TE_ribs_gap=TE_ribs_gap,
                           TE_skin_gap=TE_skin_gap,
                           mat_2D=mat_2D,
-                          mat_1D=mat_1D))
+                          mat_1D=mat_1D,
+                          bcs=bcs))
                           # Add remaining inputs
 

@@ -2,6 +2,7 @@ from parapy.core import *
 from parapy.geom import *
 from parapy.lib.nastran.entry import *
 from parapy.lib.nastran.writer import *
+from parapy.mesh import EdgeGroup
 from parapy.mesh.salome import Mesh, Tri
 from parapy.cae.nastran import read_pch
 from .generalfuse import GeneralFuse
@@ -45,8 +46,8 @@ def sec_props_finder(arg):
     for lst in arg:
         values, typ = lst
         if typ == 'dims':
-            l, a = values[0] * 1e-3, (values[0]/2) * 1e-3  # conversion to m.
-            h, b = values[1] * 1e-3, (values[1]/2) * 1e-3  # conversion to m.
+            l, a = values[0] * 1e-3, (values[0] / 2) * 1e-3  # conversion to m.
+            h, b = values[1] * 1e-3, (values[1] / 2) * 1e-3  # conversion to m.
 
             # Properties calculation.
             A = l * h  # Area.
@@ -60,6 +61,12 @@ def sec_props_finder(arg):
             props_lst.append(values)
 
     return props_lst
+
+
+def pt_finder(obj, pt, tol):
+    while not obj.mesh.grid.find_node_at(pt):
+        tol *= 10
+    return obj.mesh.grid.find_node_at(pt)
 
 
 class FEMFileGenerator(GeomBase):
@@ -77,6 +84,7 @@ class FEMFileGenerator(GeomBase):
     secs = Input([[[1, 1], 'dims'],  # STRINGERS
                   [[1, 1], 'dims'],  # SPAR CAPS
                   [[1, 0.0833, 0.0833, 2.2533], 'moms']])  # RIB CAPS
+    bcs = Input(['root_rib', '123456'])
 
     # CONTROLS
     quad_dominance = Input(False)  # or True
@@ -94,18 +102,10 @@ class FEMFileGenerator(GeomBase):
         return mat_lst  # 2D props and 1D props lists.
 
     # Creation of parts for FEM mesh.
-    @Attribute
-    def tools_list(self):
-        STEP_lst = [self.wing.skin.skin, self.wing.spars.spars[0].total_cutter, self.wing.spars.spars[1].total_cutter]
-        STEP_lst.extend([rib for rib in self.wing.ribs.ribs])
-        STEP_lst.extend([stringer.stringers for stringer in self.wing.stringers.top_stringers])
-        STEP_lst.extend([stringer.stringers for stringer in self.wing.stringers.bottom_stringers])
-        return STEP_lst
-
-    # TODO: LATER CHANGE TO GET JUST THE LIST FOR THE STEP FILE.
     @Part
     def general_shape(self):
-        return GeneralFuse(tools=self.tools_list)
+        return GeneralFuse(tools=self.wing.STEP_node_list,
+                           fuzzy_value=1e-4)
 
     @Part
     def mesh_seed(self):
@@ -146,7 +146,6 @@ class FEMFileGenerator(GeomBase):
 
 
         # Appending the finite elements to be used in the model.
-        # THERE IS SOME ERROR IN WHICH THE NUMBER OF FINITE ELEMENTS IN WAY HIGHER THAN THE NUMBER OF GRID POINTS.
         elms = []
         for idx, face in enumerate(self.mesh.grid.faces):
             nodes = [mesh_id_to_GRID[node.mesh_id] for node in face.nodes]
@@ -159,54 +158,77 @@ class FEMFileGenerator(GeomBase):
         entries.extend(elms)
 
 
-        # Defining forces and their locations for each case.
-        pload = []
-        load_cases = self.cases
-        for idx_SID, load_case in enumerate(load_cases):
-            p_lst = []
-            forces_moms = load_case.forces_moms
-            pos = load_case.forces_moms_pos
+        # BCs placement for front and rear spars and root rib.
+        bc_lst = []
+        tol = 1e-7
+        # If constraining root rib.
+        if 'root_rib' == self.bcs[0]:
 
-            for idx_load, point in enumerate(pos):
+            # Getting all the points in the root rib.
+            obj = self.general_shape.vertices
+            pts = [obj[k].point for k in range(len(obj)) if obj[k].point[1] < 1e-6]
 
-                # Find closest grid point
-                valid_pts = self.mesh.grid.find_nodes_near(point, radius=1)
-                norms = [np.sqrt((point[0] - valid_pt[0]) ** 2 + (point[1] - valid_pt[1]) ** 2 +
-                                 (point[2] - valid_pt[2]) ** 2) for valid_pt in valid_pts]
-                force_pt = valid_pts[norms.index(min(norms))]
-                force_id = force_pt.mesh_id
+            # Popping last skin vertices values.
+            x_coords = [pt[0] for pt in pts]
+            pts.pop(x_coords.index(max(x_coords)))
+            x_coords.pop(x_coords.index(max(x_coords)))
+            pts.pop(x_coords.index(max(x_coords)))
 
-                # Calculate force and append it to list.
-                L_load = FORCE(SID=idx_SID+1, G=force_id, F=forces_moms[idx_load][0], N1=0, N2=0, N3=1)
-                D_load = FORCE(SID=idx_SID+1, G=force_id, F=forces_moms[idx_load][1], N1=1, N2=0, N3=0)
-                M_load = Moment(SID=idx_SID+1, G=force_id, M=forces_moms[idx_load][2], N1=0, N2=1, N3=0)
-                load_lst = [L_load, D_load, M_load]
-                p_lst.extend(load_lst)
+            bc_aux = [pt_finder(self, pt, tol).mesh_id for pt in pts]
+            bc_lst.extend(bc_aux)
 
-            pload.extend(p_lst)
+        # If constraining front spar.
+        elif 'front_spar' == self.bcs[0]:
+            bc_aux = [
+                pt_finder(self, self.wing.spars.spars[0].cutter_intersec_curves[0].control_points[0], tol).mesh_id,
+                pt_finder(self, self.wing.spars.spars[0].cutter_intersec_curves[0].control_points[1], tol).mesh_id]
+            bc_lst.extend(bc_aux)
 
-        entries.extend(pload)
+        # If constraining rear spar.
+        elif 'rear_spar' == self.bcs[0]:
+            bc_aux = [
+                pt_finder(self, self.wing.spars.spars[1].cutter_intersec_curves[0].control_points[0], tol).mesh_id,
+                pt_finder(self, self.wing.spars.spars[1].cutter_intersec_curves[0].control_points[1], tol).mesh_id]
+            bc_lst.extend(bc_aux)
 
-
-        # Defining displacement boundary conditions.
-        fix_top = self.wing.spars.spars[0].cutter_intersec_curves[0].control_points[0]
-        fix_bottom = self.wing.spars.spars[0].cutter_intersec_curves[0].control_points[1]
-
-        top_restr = self.mesh.grid.find_nodes_near(fix_top, radius=1)
-        top_norms = [np.sqrt((point[0] - fix_top[0]) ** 2 + (point[1] - fix_top[1]) ** 2 +
-                             (point[2] - fix_top[2]) ** 2) for point in top_restr]
-        top_pt = top_restr[top_norms.index(min(top_norms))]
-        top_id = top_pt.mesh_id
-
-        bottom_restr = self.mesh.grid.find_nodes_near(fix_bottom, radius=1)
-        bottom_norms = [np.sqrt((point[0] - fix_bottom[0]) ** 2 + (point[1] - fix_bottom[1]) ** 2 +
-                             (point[2] - fix_bottom[2]) ** 2) for point in top_restr]
-        bottom_pt = bottom_restr[bottom_norms.index(min(bottom_norms))]
-        bottom_id = bottom_pt.mesh_id
-
-        spc1 = [SPC1(SID=idx+1, C=123456, Gi=[top_id, bottom_id]) for idx in range(len(self.cases))]
+        spc1 = [SPC1(SID=idx + 1, C=int(self.bcs[1]), Gi=bc_lst) for idx in range(len(self.cases))]
         entries.extend(spc1)
 
+
+        # # Defining forces and their locations for each case.
+        # pload = []
+        # load_cases = self.cases
+        # for idx_SID, load_case in enumerate(load_cases):
+        #     p_lst = []
+        #     forces_moms = load_case.forces_moms
+        #     pos = load_case.forces_moms_pos
+        #
+        #     for idx_load, point in enumerate(pos):
+        #
+        #         # Find closest grid point.
+        #         valid_pts = []
+        #         radius = 1e-3
+        #         while not valid_pts:
+        #             valid_pts = self.mesh.grid.find_nodes_near(point, radius=radius)
+        #             norms = [np.sqrt((point[0] - valid_pt[0]) ** 2 + (point[1] - valid_pt[1]) ** 2 +
+        #                              (point[2] - valid_pt[2]) ** 2) for valid_pt in valid_pts]
+        #             force_pt = valid_pts[norms.index(min(norms))]
+        #             force_id = force_pt.mesh_id
+        #
+        #             radius *= 10
+        #
+        #         # Calculate force and append it to list.
+        #         L_load = FORCE(SID=idx_SID+1, G=force_id, F=forces_moms[idx_load][0], N1=0, N2=0, N3=1)
+        #         D_load = FORCE(SID=idx_SID+1, G=force_id, F=forces_moms[idx_load][1], N1=1, N2=0, N3=0)
+        #         M_load = Moment(SID=idx_SID+1, G=force_id, M=forces_moms[idx_load][2], N1=0, N2=1, N3=0)
+        #         load_lst = [L_load, D_load, M_load]
+        #         p_lst.extend(load_lst)
+        #
+        #     pload.extend(p_lst)
+        #
+        # entries.extend(pload)
+
+        # TODO: DELETE LATER
         with open('output.txt', 'w') as file:
             # Write each element of the list as a separate line in the text file
             for item in entries:

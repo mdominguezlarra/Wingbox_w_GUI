@@ -106,8 +106,8 @@ class WingBoxAssessment(GeomBase):
     # File path for .bdf file.
     bdf_file_path = Input('wingbox_code/bdf_files/wingbox_bulkdata.bdf')
     quad_dominance = Input(False)
-    min_elem_size = Input(0.1)
-    max_elem_size = Input(0.1)
+    min_elem_size = Input(1)
+    max_elem_size = Input(1)
 
     # Material definitions. Strings combination of 'alloy-temper-thickness-basis'. Thickness in mm.
     mat_2D = Input(validator=IsInstance(list))  # RIBS
@@ -123,7 +123,8 @@ class WingBoxAssessment(GeomBase):
     # e.g. 'moms': [area,  I1,     I2,      J]
 
     # BCs
-    bcs = Input()
+    bcs = Input(['front_spar', '123456'])  # (component, DOFs)
+
 
     # SPECIAL VALIDATORS #
 
@@ -545,9 +546,11 @@ class WingBoxAssessment(GeomBase):
     @Part
     def FEMFile(self):
         return FEMFileGenerator(wing=self.wingbox,
+                                cases=self.get_forces,
                                 quad_dominance=self.quad_dominance,
                                 min_elem_size=self.min_elem_size,
-                                max_elem_size=self.max_elem_size)
+                                max_elem_size=self.max_elem_size,
+                                bcs=self.bcs)
 
     @Attribute
     def FEMWrite(self):
