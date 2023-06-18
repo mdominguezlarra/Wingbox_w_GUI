@@ -130,9 +130,9 @@ dfs = []
 for sheet_name in sheet_names:
     df = excel_file.parse(sheet_name)
     dfs.append(df)
-    print(f"Sheet Name: {sheet_name}")
-    print(df)
-    print("\n")
+    # print(f"Sheet Name: {sheet_name}")
+    # print(df)
+    # print("\n")
 
 # Sheet 1
 df_i = dfs[0]
@@ -215,11 +215,24 @@ else:
     warnings.warn(msg)
     generate_warning('Warning: Stringer Sections', msg)
 
-
-# str_cs = df_i.iloc[7, 1]      # Placeholder until resolved
-
 TE_skin_gap = df_i.iloc[11, 1]
 TE_ribs_gap = df_i.iloc[12, 1]
+
+secs = []
+
+for i in range(3):
+    csi = appender(df_i, 15+i, 'cross section', (float, int))
+    if len(csi) == 2:
+        label = 'dims'
+    elif len(csi) == 4:
+        label = 'moms'
+    else:
+        msg = 'Cross-section input ill-posed. Input 2 dimensions of length and width or 4 dimensions of moment' \
+              ' of inertia as defined in the input sheet.'
+        warnings.warn(msg)
+        generate_warning('Warning: Wrong Cross-section Input', msg)
+        label = ''
+    secs.append([csi, label])
 
 mat_2D = [material_name(df_i, 31, 'skin'),
           material_name(df_i, 27, 'spar web'),
@@ -235,7 +248,37 @@ type_warning(TE_skin_gap, 'skin TE cut', (float, int))
 
 
 # Sheet 4
-# df_i = dfs[3]
+df_i = dfs[3]
+
+# Mesh Details
+
+bdf_file_path = 'wingbox_code/bdf_files/wingbox_bulkdata.bdf'
+if df_i.iloc[6, 1] is not np.nan:
+    bdf_file_path = df_i.iloc[6, 1]
+
+tc_select = df_i.iloc[7, 1]
+min_elem_size = df_i.iloc[8, 1]
+max_elem_size = df_i.iloc[9, 1]
+quad_dominance = False
+
+if df_i.iloc[10, 1] == 'Y' or df_i.iloc[10, 1] == 'y':
+    quad_dominance = True
+elif df_i.iloc[10, 1] != 'N' and df_i.iloc[10, 1] != 'n' and df_i.iloc[10, 1] is not np.NaN:
+    msg = 'Input Y, N or leave empty for the quad dominance input to be valid.'
+    warnings.warn(msg)
+    generate_warning('Warning: Tri or Quad Dominance?', msg)
+
+bcs = []
+labels = ['root_rib', 'front_spar', 'rear_spar']
+
+for i in range(3):
+    sliced = pd.Index.notna(df_i.iloc[13+i, 1:7])
+    dof = ''
+    for j in range(6):
+        if sliced[j]:
+            dof = dof + str(j+1)
+
+    bcs.append([labels[i], dof])
 
 # Checking that all parameters have the correct number of inputs for n sections
 # n elements: sweeps, dihedrals, rib_idx, stringer_idx
@@ -253,10 +296,14 @@ length_load = [len(i) for i in case_settings]
 
 coherence_warning(length_load, len(case_settings[0]), 'load cases', 'Load Cases')
 n_loads = len(case_settings[0])
+
 # Print inputs
 # print(root_chord, spans, tapers, sweeps, dihedrals, twist, airfoil_sections, airfoil_names, case_settings, weight,
 #       speed, height, rib_idx, front_spar_loc, rear_spar_loc, stringer_idx, TE_ribs_gap, TE_skin_gap,
 #       mat_2D, mat_1D)
+
+#######################################################################################################################
+#######################################################################################################################
 
 # INITIALIZATION
 
@@ -281,7 +328,14 @@ display(WingBoxAssessment(root_chord=root_chord,
                           stringer_idx=stringer_idx,
                           TE_ribs_gap=TE_ribs_gap,
                           TE_skin_gap=TE_skin_gap,
+                          secs=secs,
                           mat_2D=mat_2D,
-                          mat_1D=mat_1D))
-                          # Add remaining inputs
+                          mat_1D=mat_1D,
+                          bdf_file_path=bdf_file_path,
+                          min_elem_size=min_elem_size,
+                          max_elem_size=max_elem_size,
+                          tc_select=tc_select,
+                          quad_dominance=quad_dominance,
+                          bcs=bcs))
+
 

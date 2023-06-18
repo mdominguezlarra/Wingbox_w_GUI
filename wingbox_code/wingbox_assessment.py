@@ -78,9 +78,9 @@ class WingBoxAssessment(GeomBase):
     airfoil_names = Input(validator=IsInstance(list))
 
     # AIRCRAFT GENERAL INPUTS
-    weight = Input()    #validator=And(Positive(), IsInstance((int, float))))  # kg.
-    speed = Input()     #validator=And(Positive(), IsInstance((int, float))))  # m/s.
-    height = Input()    #validator=IsInstance((int, float)))  # ft.
+    weight = Input(validator=And(Positive(), IsInstance((int, float))))  # kg.
+    speed = Input(validator=And(Positive(), IsInstance((int, float))))  # m/s.
+    height = Input(validator=IsInstance((int, float)))  # ft.
 
     # LOAD CASES
     n_loads = Input(validator=And(Positive(), IsInstance(int)))
@@ -104,26 +104,24 @@ class WingBoxAssessment(GeomBase):
     # FEM MODEL INPUTS
     # AERODYNAMIC LOADS ARE AUTOMATICALLY CALCULATED USING GET_FORCES.
     # File path for .bdf file.
-    bdf_file_path = Input('wingbox_code/bdf_files/wingbox_bulkdata.bdf')
-    quad_dominance = Input(False)
-    min_elem_size = Input(0.1)
-    max_elem_size = Input(0.1)
+    bdf_file_path = Input('wingbox_code/bdf_files/wingbox_bulkdata.bdf', validator=IsInstance(str))
+    quad_dominance = Input(False, validator=IsInstance(bool))
+    min_elem_size = Input(validator=And(IsInstance((float, int)), Positive()))
+    max_elem_size = Input(validator=And(IsInstance((float, int)), Positive()))
 
     # Material definitions. Strings combination of 'alloy-temper-thickness-basis'. Thickness in mm.
     mat_2D = Input(validator=IsInstance(list))  # RIBS
     mat_1D = Input(validator=IsInstance(list))  # RIB CAPS
 
-    tc_select = Input('t', validator=IsInstance(str))  # TENSION OR COMPRESSION SELECTOR
+    tc_select = Input(validator=And(IsInstance(str), OneOf(['t', 'c'])))  # TENSION OR COMPRESSION SELECTOR
 
     # Cross-sections properties. Inputs are either dimensions of a rectangle, or mechanical properties.
     # e.g. 'dims': [horizontal, vertical] # in mm
-    secs = Input([[[1, 1], 'dims'],  # STRINGERS
-                  [[1, 1], 'dims'],  # SPAR CAPS
-                  [[1, 0.0833, 0.0833, 2.2533], 'moms']])  # RIB CAPS
     # e.g. 'moms': [area,  I1,     I2,      J]
+    secs = Input(validator=IsInstance(list))
 
     # BCs
-    bcs = Input()
+    bcs = Input(validator=IsInstance(list))
 
     # SPECIAL VALIDATORS #
 
@@ -515,6 +513,96 @@ class WingBoxAssessment(GeomBase):
             return False, msg
 
         return
+
+    @bdf_file_path.validator
+    def bdf_file_path(self, path):
+
+        if not os.path.exists(path):
+            msg = 'Wrong .bdf file path. Please make sure the file is in the specified path.'
+            return False, msg
+
+        return True
+
+    @min_elem_size.validator
+    def min_elem_size(self, value):
+
+        if value > self.max_elem_size:
+            msg = 'Minimum element size cannot be greater tha nthe maximum element size.'
+            return False, msg
+
+        return True
+
+    @max_elem_size.validator
+    def max_elem_size(self, value):
+
+        if value < self.min_elem_size:
+            msg = 'Maximum element size cannot be smaller than the minimum element size.'
+            return False, msg
+
+        return True
+
+    @secs.validator
+    def secs(self, cs_lst):
+
+        if len(cs_lst) != 3:
+            msg = 'The number of cross-section descriptions cannot be changed.'
+            return False, msg
+
+        for i in range(len(cs_lst)):
+
+            if (cs_lst[i][1] != 'moms') and (cs_lst[i][1] != 'dims'):
+                msg = 'Cross-section descriptor must be "moms" or "dims".'
+                return False, msg
+
+            if (cs_lst[i][1] == 'moms') and len(cs_lst[i][0]) != 4:
+                msg = 'Cross-section defined on moments of inertia must have four inputs:' \
+                      ' cross-sectional area, moment of inertia in the vertical axes, in the horizontal' \
+                      ' axes, and polar moment of inertia.'
+                return False, msg
+
+            if (cs_lst[i][1] == 'dims') and len(cs_lst[i][0]) != 2:
+                msg = 'Cross-section defined on dimensions must have two inputs:' \
+                      ' vertical and horizontal lengths.'
+                return False, msg
+
+            for j in range(len(cs_lst[i][0])):
+                warn, msg = type_warning(cs_lst[i][0][j], 'cross-sectional dimensions', (float, int))
+                if not warn:
+                    return False, msg
+
+        return True
+
+    @bcs.validator
+    def bcs(self, bcs_lst):
+
+        if len(bcs_lst) != 3:
+            msg = 'The number of boundary condition descriptions cannot be changed.'
+            return False, msg
+
+        for i in range(3):
+            warn, msg = type_warning(bcs_lst[i][1], 'constricted DOFs', str)
+            if not warn:
+                return False, msg
+
+            if bcs_lst[i][0] != ['root_rib', 'front_spar', 'rear_spar'][i]:
+                msg = 'Boundary condition descriptors cannot be changed.'
+                return False, msg
+
+            decompose = [*bcs_lst[i][1]]
+
+            if len(decompose) != len(set(decompose)):
+                msg = 'DOF indexes cannot be repeated'
+                return False, msg
+
+            for j in range(len(decompose)):
+                if decompose[j] not in ['1', '2', '3', '4', '5', '6']:
+                    msg = 'DOF index must be comprised between 1 and 6.'
+                    return False, msg
+                if j > 0 and (decompose[j] < decompose[j-1]):
+                    msg = 'DOF indexes must be ordered in ascending order.'
+                    return False, msg
+
+        return True
 
     # CHILDREN GENERATION
 
