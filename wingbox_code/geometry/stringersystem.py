@@ -2,7 +2,7 @@ from parapy.core import *
 from parapy.geom import *
 import numpy as np
 from .geometry_tools.cutter import Cutter
-from .stringer import Stringer
+from .elements.stringer import Stringer
 
 
 def division_lst(nested_arr):
