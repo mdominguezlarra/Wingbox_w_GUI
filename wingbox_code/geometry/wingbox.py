@@ -194,8 +194,8 @@ class WingBox(GeomBase):
     def stringers(self):
         return StringerSystem(pass_down=['spars', 'ribs', 'wing', 'stringer_idx'])
 
-    @Part
-    def STEPFile(self):
+    @Attribute
+    def STEP_file(self):
         return STEPWriter(nodes=self.STEP_node_list, schema='AP203')
 
 

@@ -83,7 +83,7 @@ class Cutter(GeomBase):
     def cutter_intersec_curves(self):
         return ComposedCurve(quantify=len(self.cutter_intersecs),
                              built_from=self.cutter_intersecs[child.index],
-                             hidden=True)
+                             hidden=False)
 
     @Part
     def cutter_web(self):

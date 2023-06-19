@@ -7,6 +7,8 @@ from .analysis_tools.avl_analysis import AvlAnalysis
 from .format.tk_warn import type_warning, material_validation
 from .analysis_tools.femfilegenerator import FEMFileGenerator
 import os
+import shutil
+import matplotlib.pyplot as plt
 
 
 class WingBoxAssessment(GeomBase):
@@ -387,11 +389,11 @@ class WingBoxAssessment(GeomBase):
 
     @stringer_idx.validator
     def stringer_idx(self, stringers):
-        '''
+        """
         Validates list coherence as well as that the elements are positive and integers
         :param stringers:
         :return:
-        '''
+        """
         if len(stringers) != self.n_sections:
             msg = 'The number of section stringers must be coherent with the number of sections.'\
                   ' If you want to add/remove sections, change n_sections.'
@@ -532,11 +534,11 @@ class WingBoxAssessment(GeomBase):
 
     @bdf_file_path.validator
     def bdf_file_path(self, path):
-        '''
+        """
         Verifies that the bdf file path exists
         :param path:
         :return:
-        '''
+        """
         if not os.path.exists(path):
             msg = 'Wrong .bdf file path. Please make sure the file is in the specified path.'
             return False, msg
@@ -555,7 +557,6 @@ class WingBoxAssessment(GeomBase):
             return False, msg
 
         return True
-
 
     @secs.validator
     def secs(self, cs_lst):
@@ -663,6 +664,7 @@ class WingBoxAssessment(GeomBase):
 
     @Part
     def FEMFile(self):
+        """ Creates the complete NASTRAN file that must be run independently. """
         return FEMFileGenerator(wing=self.wingbox,
                                 analysis=self.analysis,
                                 quad_dominance=self.quad_dominance,
@@ -672,7 +674,7 @@ class WingBoxAssessment(GeomBase):
 
     @Attribute
     def FEMWrite(self):
-
+        """ Writes the load cases to the above written NASTRAN file. """
         base_file = self.FEMFile.FEMwriter.write(self.bdf_file_path)
         search_line = 'ECHO = NONE'
         file_path = os.path.join(os.path.dirname(__file__), 'bdf_files/wingbox_bulkdata.bdf')
@@ -703,6 +705,74 @@ class WingBoxAssessment(GeomBase):
                                 file.write(command + var + '\n')
                             else:
                                 file.write(command + '\n')
+
+        return None
+
+    @Attribute
+    def OutData(self):
+        """ Transfer files to output_data folder. """
+        # Copying .f06 file to output_data.
+        dest_folder = os.path.join(os.path.dirname(__file__), 'output_data')
+        source_f06 = os.path.join(os.path.dirname(__file__), 'bdf_files/wingbox_bulkdata.f06')
+        destination_file = os.path.join(dest_folder, os.path.basename(source_f06))
+        shutil.copy2(source_f06, destination_file)
+
+        # Creating STEP file of the geometry in the folder.
+        self.wingbox.STEP_file.write(os.path.join(dest_folder, 'wingbox_STEP.stp'))
+
+        # # Creating plots for the spar placement.
+        # frt_spar_pts = [self.wingbox.spars.spars[0].cutter_intersec_curves[k].control_points for k
+        #                 in range(len(self.wingbox.spars.spars[0].cutter_intersec_curves))]
+        # rear_spar_pts = [self.wingbox.spars.spars[1].cutter_intersec_curves[k].control_points for k
+        #                 in range(len(self.wingbox.spars.spars[1].cutter_intersec_curves))]
+
+        # Creating plots for AVL distributions of lift.
+        load_cases = self.FEMFile.cases
+        for idx, case in enumerate(load_cases):
+            ids = ['L', 'D', 'M']
+            L_vec = [load[0] for load in case.forces_moms]
+            D_vec = [load[1] for load in case.forces_moms]
+            M_vec = [load[2] for load in case.forces_moms]
+            F_vec = [L_vec, D_vec, M_vec]
+            y_vec = [pos[1] for pos in case.forces_moms_pos]
+
+            # Plotting and saving.
+            px = 1 / plt.rcParams['figure.dpi']
+            for id, vec in enumerate(F_vec):
+                plt.figure(figsize=(800*px, 600*px))
+                plot_handle = plt.plot(y_vec, vec)
+                plt.grid(True)
+                plt.xlabel('y [m]')
+                plt.ylabel(ids[id] + ' [N]')
+                path_to_save = os.path.join(os.path.dirname(__file__), 'output_data/avl_plots/' + ids[id] +'_case_' + str(idx + 1))
+                plt.savefig(path_to_save)
+
+        # Getting general forces and reactions for each case.
+        f06_loc = os.path.join(os.path.dirname(__file__), 'output_data/wingbox_bulkdata.f06')
+        react_loc = 'output_data/react_forces_moms/'
+        totals_lst = []
+
+        with open(f06_loc, 'r') as file:
+            for line in file:
+                if '             TOTALS' in line:
+                    totals_lst.append(line)
+
+        totals_lst = totals_lst[0:3]
+
+        for idx, react in enumerate(totals_lst):
+            values = react.split()
+            label = values[0].strip()
+            values = [float(val) for val in values[1:]]
+            write_path = os.path.join(os.path.dirname(__file__), react_loc + 'react_SUBCASE' + str(idx + 1) + '.txt')
+
+            with open(write_path, 'w') as file:
+                file.write('THE TOTAL REACTION FORCES OF THE STRUCTURE OF THE WING ARE:\n')
+                file.write('FX=' + str(round(values[0], 3)) + ' N \n')
+                file.write('FY=' + str(round(values[1], 3)) + ' N \n')
+                file.write('FZ=' + str(round(values[2], 3)) + ' N \n')
+                file.write('MX=' + str(round(values[3], 3)) + ' Nm \n')
+                file.write('MY=' + str(round(values[4], 3)) + ' Nm \n')
+                file.write('MZ=' + str(round(values[5], 3)) + ' Nm \n')
 
         return None
 
