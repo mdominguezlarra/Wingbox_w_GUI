@@ -1,15 +1,49 @@
 from parapy.core import *
 from kbeutils import avl
+from parapy.core.validate import *
 from .avl_tools.flight_condition import FlightCondition
+from ..format.tk_warn import type_warning
 
 
 class AvlAnalysis(avl.Interface):
 
     wing = Input()
-    case_settings = Input()
-    weight = Input()
-    speed = Input()
-    height = Input()
+    n_loads = Input(validator=And(Positive(), IsInstance(int)))
+    case_settings = Input(validator=IsInstance(list))
+    weight = Input(validator=And(Positive(), IsInstance((int, float))))  # kg.
+    speed = Input(validator=And(Positive(), IsInstance((int, float))))  # m/s.
+    height = Input(validator=IsInstance((int, float)))  # ft.
+
+    @case_settings.validator
+    def case_settings(self, cases):
+        """
+        Validates the strict naming convention of the case_settings input, as well as its coherence.
+        :param cases:
+        :return:
+        """
+
+        for i in cases:
+            if len(i) != self.n_loads:
+                msg = 'The number of load cases must be coherent.' \
+                      ' If you want to add/remove load cases, change n_loads'
+                return False, msg
+
+        for i in cases[0]:
+            warn, msg = type_warning(i, 'load case names', str)
+            if not warn:
+                return False, msg
+
+        for i in cases[1]:
+            if i != 'alpha' and i != 'CL':
+                msg = 'Invalid load case variable name. Please use either "alpha" or "CL"'
+                return False, msg
+
+        for i in cases[2]:
+            warn, msg = type_warning(i, 'load case variable value', (float, int))
+            if not warn:
+                return False, msg
+
+        return True
 
     @Attribute
     def case_input(self):

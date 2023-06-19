@@ -58,10 +58,6 @@ sheet are set, you can initialize the app by running ``AA_Initialization.py``.
     and up to date.
 
 
-    When adjusting and modifying the inputs for the wing or any of its analysis components from the ParaPy GUI,
-    we recommend that you modify the inputs at the root level, as it ensures better performance of the app.
-
-
 There are four sheets, one for each of the modules summarized beforehand.
 
 ### Wing Geometry
@@ -78,6 +74,7 @@ be one one of the names specified in the sheet itself.
 
     Be careful as to input the name correctly, typos will make the program raise a warning.
 
+
 ### Load Cases
 
 The load cases can be customized with either a setting of desired angle of attack, or desired lift coefficient. All
@@ -86,6 +83,7 @@ load cases will be run with the same aircraft configuration. That is: weight, sp
 
     When inputting the variable in the Excel sheet, you must specify exactly 'alpha' or 'CL' for each variable case
     (without the quotations).
+
 
 ### Wingbox Details
 
@@ -110,6 +108,7 @@ simple way.
     The Excel sheet gives you flexibility when inputting dimensions. Rectangular cross-sections require two inputs,
     others require four. Make sure not to include three inputs by mistake!
 
+
 Finally, the material selection. In this part you must select a material for each and every one of the components
 of the wingbox. As explained in the sheet, you must name the material, temper, thickness, and testing basis. This
 task is simplified by putting the available materials in a table, meaning you just have to select the combination
@@ -117,6 +116,7 @@ that suits you better.
 
 
     Make sure that the thickness that you specify is within the bounds of your material!
+
 
 ### Meshing Details
 
@@ -135,6 +135,7 @@ respectively, but also good results are obtained if both are set to 0.1.
     Make sure that your NASTRAN license can handle the amount of nodes generated through the element size
     specification. If you surpass the allowed node limit, increase your element sizes.
 
+
 The Quad dominance parameter defines the mesh with square elements (where possible) instead of the default
 triangular mesh setting. In order to activate it, input a 'Y' on its cell. If the cell is blank or has a 'N',
 the default Tri mesh will be generated.
@@ -147,3 +148,6 @@ that the degree of freedom is clamped, they must mark the respective cell with a
 
     The clamping system might be redundant at some stations. There is no need to apply a front or rear spar
     clamping in the RY DOF (rotation around the y-axis) if the rib is already clamped.
+
+
+_Murilo Caetano da Silva & Mikel Dominguez Larrabeiti_ - June 2023

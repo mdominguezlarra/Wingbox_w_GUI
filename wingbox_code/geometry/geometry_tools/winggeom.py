@@ -1,11 +1,14 @@
 from parapy.core import *
 from parapy.geom import *
 from parapy.geom.occ import SewnShell
+from parapy.core.validate import *
+from ...format.tk_warn import type_warning
 from .wingsec import WingSec
 from .airfoil import Airfoil
 from .curvedraw import CurveDraw
 import numpy as np
 import cst
+import os
 from kbeutils import avl
 
 
@@ -36,26 +39,213 @@ def intersection_airfoil(span_distribution, airfoil_distribution):
 
 
 class WingGeom(GeomBase):
-
-    # All of the following inputs should be read from a file
+    # WING GEOMETRY
     # For 1st section
-    root_chord = Input(7)
+    root_chord = Input(validator=And(Positive(), IsInstance((int, float))))  # m.
 
-    # For the rest (I have a doubt, how will we solve if the number of inputs is not coherent??)
-    spans = Input([0, 8, 13, 16])           # m. wrt the root position
-    tapers = Input([1, 1, 1, 1])     # -. wrt the root chord. Extra element for root chord
-    sweeps = Input([0, 0, 0])            # deg. wrt the horizontal
-    dihedrals = Input([0, 0, 0])            # deg. wrt the horizontal
-    twist = Input([0, 0, 0, 0])           # def. wrt the horizontal (this includes the initial INCIDENCE!!)
+    # Following sections
+    n_sections = Input(validator=And(Positive(), IsInstance(int)))
+    spans = Input(validator=IsInstance(list))
+    tapers = Input(validator=IsInstance(list))
+    sweeps = Input(validator=IsInstance(list))
+    dihedrals = Input(validator=IsInstance(list))
+    twist = Input(validator=IsInstance(list))
 
     # Airfoils
-    airfoil_sections = Input([0, 0.3, 0.7, 1])
-    airfoil_names = Input([
-        'rae5212',
-        'rae5212',
-        'rae5212',
-        'rae5212'
-    ])
+    n_airfoils = Input(validator=And(Positive(), IsInstance(int)))
+    airfoil_sections = Input(validator=IsInstance(list))  # percentage wrt to root.
+    airfoil_names = Input(validator=IsInstance(list))
+
+    # SPECIAL VALIDATORS #
+
+    @spans.validator
+    def spans(self, span):
+        """
+        Validates whether the span inputs are positive, in ascending order, and not defined at the same position,
+        as well as correct type and number of inputs
+        :param span:
+        :return: bool
+        """
+        if len(span) != self.n_sections + 1:
+            msg = 'The number of section spans must be coherent with the number of sections.' \
+                  ' If you want to add/remove sections, change n_sections.'
+            return False, msg
+
+        if 0 not in span:
+            msg = 'The "0" span station must be kept unchanged'
+            return False, msg
+
+        for i in range(1, len(span[1:])):
+            warn, msg = type_warning(span[i], 'span', (int, float))
+            if not warn:
+                return False, msg
+
+            if span[i] <= 0:
+                msg = 'The section spans cannot be negative or equal to zero. Change section {}'.format(i)
+                return False, msg
+            if span[i] == span[i - 1]:
+                msg = 'Two sections cannot be defined at the same span length. Change section {}'.format(i)
+                return False, msg
+            if span[i] < span[i - 1]:
+                msg = 'The sections must be organized in ascending order. Change section {}'.format(i)
+                return False, msg
+
+        return True
+
+    @tapers.validator
+    def tapers(self, taper):
+        """
+        Validates if the taper inputs are positive, and the correct type
+        :param taper:
+        :return: bool
+        """
+        if len(taper) != self.n_sections + 1:
+            msg = 'The number of section tapers must be coherent with the number of sections.' \
+                  ' If you want to add/remove sections, change n_sections.'
+            return False, msg
+
+        for i in range(len(taper)):
+            warn, msg = type_warning(taper[i], 'taper', (int, float))
+            if not warn:
+                return False, msg
+
+            if taper[i] <= 0:
+                msg = 'The section taper cannot be negative or equal to zero. Change section {}'.format(i)
+                return False, msg
+
+        return True
+
+    @sweeps.validator
+    def sweeps(self, sweep):
+        """
+        Validates if the sweep inputs are within range, and the correct type
+        :param sweep:
+        :return:
+        """
+        if len(sweep) != self.n_sections:
+            msg = 'The number of section sweeps must be coherent with the number of sections.' \
+                  ' If you want to add/remove sections, change n_sections.'
+            return False, msg
+
+        for i in range(len(sweep)):
+            warn, msg = type_warning(sweep[i], 'sweep', (int, float))
+            if not warn:
+                return False, msg
+
+            if sweep[i] < -85 or sweep[i] > 85:
+                msg = 'The sweep value must be kept in the range [-85, 85] degrees. Change section {}'.format(i)
+                return False, msg
+
+        return True
+
+    @dihedrals.validator
+    def dihedrals(self, dihedral):
+        """
+        Validates if the dihedral inputs are within range, and the correct type
+        :param dihedral:
+        :return:
+        """
+        if len(dihedral) != self.n_sections:
+            msg = 'The number of section dihedrals must be coherent with the number of sections.' \
+                  ' If you want to add/remove sections, change n_sections.'
+            return False, msg
+
+        for i in range(len(dihedral)):
+            warn, msg = type_warning(dihedral[i], 'dihedral', (int, float))
+            if not warn:
+                return False, msg
+
+            if dihedral[i] < -85 or dihedral[i] > 85:
+                msg = 'The sweep value must be kept in the range [-85, 85] degrees. Change section {}'.format(i)
+                return False, msg
+
+        return True
+
+    @twist.validator
+    def twist(self, twists):
+        """
+        Validates if the twist inputs are within range, and the correct type
+        :param twists:
+        :return:
+        """
+        if len(twists) != self.n_sections + 1:
+            msg = 'The number of section twists must be coherent with the number of sections.' \
+                  ' If you want to add/remove sections, change n_sections.'
+            return False, msg
+
+        for i in range(len(twists)):
+            warn, msg = type_warning(twists[i], 'twist', (int, float))
+            if not warn:
+                return False, msg
+            if twists[i] < -85 or twists[i] > 85:
+                msg = 'The sweep value must be kept in the range [-85, 85] degrees. Change section {}'.format(i)
+                return False, msg
+
+        return True
+
+    @airfoil_sections.validator
+    def airfoil_sections(self, sections):
+        """
+        Validates the airfoil section order, limits, and coherence.
+        :param sections:
+        :return:
+        """
+        if len(sections) != self.n_airfoils:
+            msg = 'The number of airfoil locations must be coherent with the number of airfoils.' \
+                  ' If you want to add/remove sections, change n_airfoils'
+            return False, msg
+
+        if (0 or 1) not in sections:
+            msg = 'Either no tip or no root airfoil was input'
+            return False, msg
+
+        for i in range(1, len(sections[1:])):
+            warn, msg = type_warning(sections[i], 'airfoil sections', (int, float))
+            if not warn:
+                return False, msg
+            if sections[i] <= 0:
+                msg = 'The airfoil span sections cannot be negative or equal to zero.' \
+                      'Change airfoil location {}'.format(i)
+                return False, msg
+            if sections[i] == sections[i - 1]:
+                msg = 'Two airfoils cannot be defined at the same span length. Change airfoil location {}'.format(i)
+                return False, msg
+            if sections[i] < sections[i - 1]:
+                msg = 'The airfoils must be organized in ascending order. Change airfoil location {}'.format(i)
+                return False, msg
+            if sections[i] > 1 or sections[i] < 0:
+                msg = 'The airfoil location cannot be located outside of the span. Change airfoil location {}'.format(i)
+                return False, msg
+
+        return True
+
+    @airfoil_names.validator
+    def airfoil_names(self, names):
+        """
+        Validates the airfoil name feasibility, either by searching in the airfoil folder or by using the
+        NACA 4/5 digit generator.
+        :param names:
+        :return:
+        """
+
+        name_database_dat = os.listdir('wingbox_code/input_data/airfoils')
+        name_database = [name.split('.')[0] for name in name_database_dat]
+
+        if len(names) != self.n_airfoils:
+            msg = 'The number of airfoil names must be coherent with the number of airfoils.' \
+                  ' If you want to add/remove sections, change n_airfoils'
+            return False, msg
+
+        for i in range(len(names)):
+            warn, msg = type_warning(names[i], 'airfoil names', str)
+            if not warn:
+                return False, msg
+
+            if (names[i] not in name_database) and not (len(names[i]) == 4 or len(names[i]) == 5):
+                msg = 'Invalid airfoil name. Make sure the name is correctly written or contains either 4 or 5 digits.'
+                return False, msg
+
+        return True
 
     @Attribute
     def planform_area(self):

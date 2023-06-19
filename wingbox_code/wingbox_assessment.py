@@ -4,58 +4,9 @@ from parapy.core.validate import *
 from .geometry.geometry_tools.winggeom import WingGeom
 from .geometry.wingbox import WingBox
 from .analysis_tools.avl_analysis import AvlAnalysis
+from .format.tk_warn import type_warning, material_validation
 from .analysis_tools.femfilegenerator import FEMFileGenerator
-import csv
 import os
-
-
-def type_warning(value, label, type_i):
-    """
-    Checks the type of the input and creates a warning if such a type is wrong
-    :param value: input in question
-    :param label: label for the input
-    :param type_i: required type(s)
-    :return:
-    """
-    if not isinstance(value, type_i):
-        # error message
-        msg = 'Wrong input type for {}, correct type is {}'.format(label, type_i)
-        return False, msg
-
-    return True, None
-
-
-def material_validation():
-    """
-    Performs validation of the material name with the data from the datasheet.
-    :return: list of valid names and thicknesses
-    """
-
-    # List initialization
-    names = []
-    temper = []
-    basis = []
-    partial_name = []
-    thicknesses = []
-
-    # Finding the correct mechanical properties.
-    path = 'wingbox_code/input_data/materials.csv'
-    with open(path, 'r', newline='') as file:
-        mat_file = csv.reader(file)
-
-        for idx, row in enumerate(mat_file):
-            if idx != 0:
-                names.append(row[1])
-                temper.append(row[2])
-                basis.append(row[5])
-
-                row_str = row[1] + '-' + row[2] + '-' + row[5]
-                partial_name.append(row_str)
-
-                t_lims = [float(row[3]), float(row[4])]
-                thicknesses.append(t_lims)
-
-    return names, temper, basis, partial_name, thicknesses
 
 
 class WingBoxAssessment(GeomBase):
@@ -70,7 +21,7 @@ class WingBoxAssessment(GeomBase):
 
     # WING GEOMETRY
     # For 1st section
-    root_chord = Input()  # validator=And(Positive(), IsInstance((int, float))))  # m.
+    root_chord = Input(validator=And(Positive(), IsInstance((int, float))))  # m.
 
     # Following sections
     n_sections = Input(validator=And(Positive(), IsInstance(int)))
@@ -700,7 +651,8 @@ class WingBoxAssessment(GeomBase):
         """
         return WingGeom(pass_down=['root_chord', 'spans', 'tapers',
                                    'sweeps', 'dihedrals', 'twist',
-                                   'airfoil_sections', 'airfoil_names'])
+                                   'airfoil_sections', 'airfoil_names',
+                                   'n_sections', 'n_airfoils'])
 
     @Part
     def analysis(self):
@@ -709,7 +661,7 @@ class WingBoxAssessment(GeomBase):
         :return: AvlAnalysis
         """
         return AvlAnalysis(wing=self.wing_geom,
-                           pass_down=['case_settings', 'weight', 'speed', 'height'])
+                           pass_down=['case_settings', 'weight', 'speed', 'height, n_loads'])
 
     @Part
     def wingbox(self):
@@ -719,7 +671,7 @@ class WingBoxAssessment(GeomBase):
         """
         return WingBox(wing=self.wing_geom,
                        pass_down=['rib_idx', 'front_spar_loc', 'rear_spar_loc', 'stringer_idx',
-                                  'TE_ribs_gap', 'TE_skin_gap'])
+                                  'TE_ribs_gap', 'TE_skin_gap', 'n_sections'])
 
     @Part
     def FEMFile(self):

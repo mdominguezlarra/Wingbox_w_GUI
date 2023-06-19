@@ -21,7 +21,7 @@ import numpy as np
 from parapy.gui import display
 from wingbox_code.wingbox_assessment import WingBoxAssessment
 import warnings
-from format.tk_warn import generate_warning
+from wingbox_code.format.tk_warn import generate_warning
 
 
 def appender(data_frame, row_idx, label, type_i, rib_str=False, ):
