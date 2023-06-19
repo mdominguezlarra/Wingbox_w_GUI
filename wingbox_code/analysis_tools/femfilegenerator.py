@@ -5,6 +5,7 @@ from parapy.lib.nastran.writer import *
 from parapy.mesh import EdgeGroup
 from parapy.mesh.salome import Mesh, Tri
 from parapy.cae.nastran import read_pch
+from .get_forces import GetForces
 from .generalfuse import GeneralFuse
 import numpy as np
 import csv
@@ -71,7 +72,7 @@ def pt_finder(obj, pt, tol):
 
 class FEMFileGenerator(GeomBase):
     wing = Input()
-    cases = Input()
+    analysis = Input()
     mat_2D = Input([
         'Al2024-T3-1.27-A',  # SKIN
         'Al2024-T3-1.27-A',  # SPAR WEB
@@ -100,6 +101,17 @@ class FEMFileGenerator(GeomBase):
             mat_lst.append(mat_props_finder(mat))
 
         return mat_lst  # 2D props and 1D props lists.
+
+    @Part
+    def cases(self):
+        """
+        Retrieves and calculates the forces from AVL
+        :return: GetForces
+        """
+        return GetForces(quantify=len(self.analysis.case_settings[2]),
+                         input_case=self.analysis,
+                         num_case=child.index + 1,
+                         flight_cond=self.analysis.flight_cond)
 
     # Creation of parts for FEM mesh.
     @Part
