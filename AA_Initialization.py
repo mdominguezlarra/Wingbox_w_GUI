@@ -12,6 +12,8 @@
 
 # TIP: If you want to change the number of inputs, loads, or airfoils WITHIN the GUI, make sure to change
 #      the values n_sections, n_airfoils, or n_loads beforehand. Otherwise, error warnings will pop up.
+#      It is also recommended to change the inputs directly at the 'root', since it is where the validators
+#      are applied.
 
 
 import pandas as pd

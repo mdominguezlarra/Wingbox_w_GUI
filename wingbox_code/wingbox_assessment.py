@@ -27,6 +27,10 @@ def type_warning(value, label, type_i):
 
 
 def material_validation():
+    """
+    Performs validation of the material name with the data from the datasheet.
+    :return: list of valid names and thicknesses
+    """
 
     # List initialization
     names = []
@@ -56,6 +60,11 @@ def material_validation():
 
 
 class WingBoxAssessment(GeomBase):
+    """
+    Create a wing model with multiple sections and airfoils. Further, create its corresponding wingbox. These
+    geometries can then be analyzed aerodynamically (through AVL) and structurally (through NASTRAN). All
+    of these analyses are integrated through this class.
+    """
 
     # ALL INPUTS ARE ESTABLISHED HERE
     # INPUTS MUST BE ON SI UNITS, UNLESS STATED OTHERWISE IN COMMENTS.
@@ -252,7 +261,11 @@ class WingBoxAssessment(GeomBase):
 
     @airfoil_sections.validator
     def airfoil_sections(self, sections):
-
+        """
+        Validates the airfoil section order, limits, and coherence.
+        :param sections:
+        :return:
+        """
         if len(sections) != self.n_airfoils:
             msg = 'The number of airfoil locations must be coherent with the number of airfoils.'\
                   ' If you want to add/remove sections, change n_airfoils'
@@ -284,6 +297,12 @@ class WingBoxAssessment(GeomBase):
 
     @airfoil_names.validator
     def airfoil_names(self, names):
+        """
+        Validates the airfoil name feasibility, either by searching in the airfoil folder or by using the
+        NACA 4/5 digit generator.
+        :param names:
+        :return:
+        """
 
         name_database_dat = os.listdir('wingbox_code/input_data/airfoils')
         name_database = [name.split('.')[0] for name in name_database_dat]
@@ -306,6 +325,11 @@ class WingBoxAssessment(GeomBase):
 
     @case_settings.validator
     def case_settings(self, cases):
+        """
+        Validates the strict naming convention of the case_settings input, as well as its coherence.
+        :param cases:
+        :return:
+        """
 
         for i in cases:
             if len(i) != self.n_loads:
@@ -332,7 +356,11 @@ class WingBoxAssessment(GeomBase):
 
     @rib_idx.validator
     def rib_idx(self, ribs):
-
+        """
+        Validates list coherence as well as that the elements are positive and integers
+        :param ribs:
+        :return:
+        """
         if len(ribs) != self.n_sections:
             msg = 'The number of section ribs must be coherent with the number of sections.'\
                   ' If you want to add/remove sections, change n_sections.'
@@ -351,6 +379,12 @@ class WingBoxAssessment(GeomBase):
 
     @front_spar_loc.validator
     def front_spar_loc(self, fs_locs):
+        """
+        It validates the location of the spars, its coherence, and makes sure that it stays within the chord
+        and does not cross over the rear spar.
+        :param fs_locs:
+        :return:
+        """
 
         if len(fs_locs) != self.n_sections + 1:
             msg = 'The number of section front spar locations must be coherent with the number of sections.'\
@@ -374,6 +408,12 @@ class WingBoxAssessment(GeomBase):
 
     @rear_spar_loc.validator
     def rear_spar_loc(self, rs_locs):
+        """
+        It validates the location of the spars, its coherence, and makes sure that it stays within the chord
+        and does not cross over the front spar.
+        :param rs_locs:
+        :return:
+        """
 
         if len(rs_locs) != self.n_sections + 1:
             msg = 'The number of section rear spar locations must be coherent with the number of sections.'\
@@ -397,7 +437,11 @@ class WingBoxAssessment(GeomBase):
 
     @stringer_idx.validator
     def stringer_idx(self, stringers):
-
+        '''
+        Validates list coherence as well as that the elements are positive and integers
+        :param stringers:
+        :return:
+        '''
         if len(stringers) != self.n_sections:
             msg = 'The number of section stringers must be coherent with the number of sections.'\
                   ' If you want to add/remove sections, change n_sections.'
@@ -416,7 +460,11 @@ class WingBoxAssessment(GeomBase):
 
     @TE_skin_gap.validator
     def TE_skin_gap(self, value):
-
+        """
+        Verifies that the gap is kept further back than the rear spar
+        :param value:
+        :return:
+        """
         for i in range(self.n_sections + 1):
             if value < self.rear_spar_loc[i]:
                 msg = 'The skin cut location cannot be located further front than the aft spar.'
@@ -426,7 +474,11 @@ class WingBoxAssessment(GeomBase):
 
     @TE_ribs_gap.validator
     def TE_ribs_gap(self, value):
-
+        """
+        Verifies that the gap is kept further back than the rear spar
+        :param value:
+        :return:
+        """
         for i in range(self.n_sections + 1):
             if value < self.rear_spar_loc[i]:
                 msg = 'The rib cut location cannot be located further front than the aft spar.'
@@ -436,7 +488,11 @@ class WingBoxAssessment(GeomBase):
 
     @mat_1D.validator
     def mat_1D(self, materials):
-
+        """
+        Validates that the name of the material will be accepted by the NASTRAN interface later on
+        :param materials:
+        :return:
+        """
         for material in materials:
             warn, msg = type_warning(material, 'material', str)
             if not warn:
@@ -476,7 +532,11 @@ class WingBoxAssessment(GeomBase):
 
     @mat_2D.validator
     def mat_2D(self, materials):
-
+        """
+        Validates that the name of the material will be accepted by the NASTRAN interface later on
+        :param materials:
+        :return:
+        """
         for material in materials:
             warn, msg = type_warning(material, 'material', str)
             if not warn:
@@ -516,7 +576,11 @@ class WingBoxAssessment(GeomBase):
 
     @bdf_file_path.validator
     def bdf_file_path(self, path):
-
+        '''
+        Verifies that the bdf file path exists
+        :param path:
+        :return:
+        '''
         if not os.path.exists(path):
             msg = 'Wrong .bdf file path. Please make sure the file is in the specified path.'
             return False, msg
@@ -525,16 +589,24 @@ class WingBoxAssessment(GeomBase):
 
     @min_elem_size.validator
     def min_elem_size(self, value):
-
+        """
+        Verifies that the minimum element size is not larger than the maximum element size
+        :param value:
+        :return:
+        """
         if value > self.max_elem_size:
-            msg = 'Minimum element size cannot be greater tha nthe maximum element size.'
+            msg = 'Minimum element size cannot be greater than the maximum element size.'
             return False, msg
 
         return True
 
     @max_elem_size.validator
     def max_elem_size(self, value):
-
+        """
+        Verifies that the minimum element size is not larger than the maximum element size
+        :param value:
+        :return:
+        """
         if value < self.min_elem_size:
             msg = 'Maximum element size cannot be smaller than the minimum element size.'
             return False, msg
@@ -543,7 +615,11 @@ class WingBoxAssessment(GeomBase):
 
     @secs.validator
     def secs(self, cs_lst):
-
+        """
+        Verifies that the tight naming scheme of the cross-section input is respected
+        :param cs_lst:
+        :return:
+        """
         if len(cs_lst) != 3:
             msg = 'The number of cross-section descriptions cannot be changed.'
             return False, msg
@@ -574,7 +650,12 @@ class WingBoxAssessment(GeomBase):
 
     @bcs.validator
     def bcs(self, bcs_lst):
-
+        """
+        Verifies that the boundary condition input is correctly implemented: no repetition, limits, naming
+        scheme, etc.
+        :param bcs_lst:
+        :return:
+        """
         if len(bcs_lst) != 3:
             msg = 'The number of boundary condition descriptions cannot be changed.'
             return False, msg
@@ -608,23 +689,39 @@ class WingBoxAssessment(GeomBase):
 
     @Part
     def wing_geom(self):
+        """
+        Creates the geometry of the wing
+        :return: WingGeom
+        """
         return WingGeom(pass_down=['root_chord', 'spans', 'tapers',
                                    'sweeps', 'dihedrals', 'twist',
                                    'airfoil_sections', 'airfoil_names'])
 
     @Part
     def analysis(self):
+        """
+        Creates the setup for AVL analysis
+        :return: AvlAnalysis
+        """
         return AvlAnalysis(wing=self.wing_geom,
                            pass_down=['case_settings', 'weight', 'speed', 'height'])
 
     @Part
     def wingbox(self):
+        """
+        Creates the wingbox structure
+        :return: WingBox
+        """
         return WingBox(wing=self.wing_geom,
                        pass_down=['rib_idx', 'front_spar_loc', 'rear_spar_loc', 'stringer_idx',
                                   'TE_ribs_gap', 'TE_skin_gap'])
 
     @Part
     def get_forces(self):
+        """
+        Retrieves and calculates the forces from AVL
+        :return: GetForces
+        """
         return GetForces(quantify=len(self.case_settings[2]),
                          input_case=self.analysis,
                          num_case=child.index + 1,
