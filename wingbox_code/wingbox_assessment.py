@@ -106,13 +106,13 @@ class WingBoxAssessment(GeomBase):
     stringer_idx = Input(validator=IsInstance(list))
 
     # Trailing edge gaps for skin and ribs
-    TE_ribs_gap = Input(validator=Range(0, 1))  # Must be after the rearmost rear_spar_loc but less than 1
-    TE_skin_gap = Input(validator=Range(0, 1))  # Must be after the rearmost rear_spar_loc but less than 1
+    TE_ribs_gap = Input(validator=Range(0, 0.98))  # Must be after the rearmost rear_spar_loc but less than 0.98
+    TE_skin_gap = Input(validator=Range(0, 0.98))  # Must be after the rearmost rear_spar_loc but less than 1
 
     # FEM MODEL INPUTS
     # AERODYNAMIC LOADS ARE AUTOMATICALLY CALCULATED USING GET_FORCES.
     # File path for .bdf file.
-    bdf_file_path = Input('wingbox_code/bdf_files/wingbox_bulkdata.bdf', validator=IsInstance(str))
+    bdf_file_path = Input('wingbox_code/bdf_files/wingbox_bulkdata.bdf', validator=Optional(IsInstance(str)))
     quad_dominance = Input(False, validator=IsInstance(bool))
     min_elem_size = Input(validator=And(IsInstance((float, int)), Positive()))
     max_elem_size = Input(validator=And(IsInstance((float, int)), Positive()))
@@ -468,6 +468,9 @@ class WingBoxAssessment(GeomBase):
             if value < self.rear_spar_loc[i]:
                 msg = 'The skin cut location cannot be located further front than the aft spar.'
                 return False, msg
+            if value > 0.98:
+                msg = 'The skin cut location cannot be located more than 98% of the chord'
+                return False, msg
 
         return True
 
@@ -481,6 +484,9 @@ class WingBoxAssessment(GeomBase):
         for i in range(self.n_sections + 1):
             if value < self.rear_spar_loc[i]:
                 msg = 'The rib cut location cannot be located further front than the aft spar.'
+                return False, msg
+            if value > 0.98:
+                msg = 'The rib cut location cannot be located more than 98% of the chord'
                 return False, msg
 
         return True
