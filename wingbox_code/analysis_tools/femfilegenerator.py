@@ -2,7 +2,6 @@ from parapy.core import *
 from parapy.geom import *
 from parapy.lib.nastran.entry import *
 from parapy.lib.nastran.writer import *
-from .get_forces import GetForces
 from parapy.mesh import EdgeGroup
 from parapy.mesh.salome import Mesh, Tri
 from parapy.cae.nastran import read_pch
@@ -65,15 +64,14 @@ def sec_props_finder(arg):
 
 
 def pt_finder(obj, pt, tol):
-    while not obj.mesh.grid.find_node_at(pt):
+    while not obj.mesh.grid.find_node_at(pt, tolerance=tol):
         tol *= 10
-    return obj.mesh.grid.find_node_at(pt)
+    return obj.mesh.grid.find_node_at(pt, tolerance=tol)
 
 
 class FEMFileGenerator(GeomBase):
-
     wing = Input()
-    analysis = Input()
+    cases = Input()
     mat_2D = Input([
         'Al2024-T3-1.27-A',  # SKIN
         'Al2024-T3-1.27-A',  # SPAR WEB
@@ -102,17 +100,6 @@ class FEMFileGenerator(GeomBase):
             mat_lst.append(mat_props_finder(mat))
 
         return mat_lst  # 2D props and 1D props lists.
-
-    @Part
-    def cases(self):
-        """
-        Retrieves and calculates the forces from AVL
-        :return: GetForces
-        """
-        return GetForces(quantify=len(self.analysis.case_settings[2]),
-                         input_case=self.analysis,
-                         num_case=child.index + 1,
-                         flight_cond=self.analysis.flight_cond)
 
     # Creation of parts for FEM mesh.
     @Part
@@ -172,13 +159,11 @@ class FEMFileGenerator(GeomBase):
 
 
         # BCs placement for front and rear spars and root rib.
-        bc_lst = []
-        bc_cnts = []
-        print(self.bcs)
-        tol = 1e-7
+        bc_lst, bc_const = [], []
         # If constraining root rib.
         for bc in self.bcs:
             if bc[0] == 'root_rib':
+                tol = 1e-7
                 # Getting all the points in the root rib.
                 obj = self.general_shape.vertices
                 pts = [obj[k].point for k in range(len(obj)) if obj[k].point[1] < 1e-6]
@@ -189,53 +174,47 @@ class FEMFileGenerator(GeomBase):
                 x_coords.pop(x_coords.index(max(x_coords)))
                 pts.pop(x_coords.index(max(x_coords)))
 
-                bc_aux = [pt_finder(self, pt, tol).mesh_id for pt in pts]
-                bc_lst.extend(bc_aux)
-                bc_cnts.append(bc[1])
+                bc_lst_aux = [pt_finder(self, pt, tol).mesh_id for pt in pts]
+                bc_const_aux = [bc[1]] * len(bc_lst_aux)
+                bc_lst.extend(bc_lst_aux)
+                bc_const.extend(bc_const_aux)
 
             elif bc[0] == 'front_spar':
-                bc_aux = [
+                tol = 1e-7
+                bc_lst_aux = [
                     pt_finder(self, self.wing.spars.spars[0].cutter_intersec_curves[0].control_points[0], tol).mesh_id,
                     pt_finder(self, self.wing.spars.spars[0].cutter_intersec_curves[0].control_points[1], tol).mesh_id]
-                bc_lst.extend(bc_aux)
-                bc_cnts.append(bc[1])
+                bc_const_aux = [bc[1]] * len(bc_lst_aux)
+                bc_lst.extend(bc_lst_aux)
+                bc_const.extend(bc_const_aux)
 
             elif bc[0] == 'rear_spar':
-                bc_aux = [
+                tol = 1e-7
+                bc_lst_aux = [
                     pt_finder(self, self.wing.spars.spars[1].cutter_intersec_curves[0].control_points[0], tol).mesh_id,
                     pt_finder(self, self.wing.spars.spars[1].cutter_intersec_curves[0].control_points[1], tol).mesh_id]
-                bc_lst.extend(bc_aux)
-                bc_cnts.append(bc[1])
+                bc_const_aux = [bc[1]] * len(bc_lst_aux)
+                bc_lst.extend(bc_lst_aux)
+                bc_const.extend(bc_const_aux)
 
-
-        print(bc_lst)
-        print(bc_cnts)
-        spc1 = [SPC1(SID=idx + 1, C=bc_cnts[idx], Gi=bc_lst[idx]) for idx, value in enumerate(self.bcs)]
-        print(spc1)
-        entries.extend(spc1)
+        for SID in range(len(self.cases)):
+            spc1 = [SPC1(SID=SID+1, C=bc_const[idx], Gi=bc_lst[idx]) for idx, _ in enumerate(bc_lst)]
+            entries.extend(spc1)
 
 
         # Defining forces and their locations for each case.
         forces = []
         load_cases = self.cases
         for idx_SID, load_case in enumerate(load_cases):
+            idx_load = 0
             p_lst = []
             forces_moms = load_case.forces_moms
             pos = load_case.forces_moms_pos
 
-            for idx_load, point in enumerate(pos):
-
-                # Find closest grid point.
-                valid_pts = []
-                radius = 1e-3
-                while not valid_pts:
-                    valid_pts = self.mesh.grid.find_nodes_near(point, radius=radius)
-                    norms = [np.sqrt((point[0] - valid_pt[0]) ** 2 + (point[1] - valid_pt[1]) ** 2 +
-                                     (point[2] - valid_pt[2]) ** 2) for valid_pt in valid_pts]
-                    force_pt = valid_pts[norms.index(min(norms))]
-                    force_id = force_pt.mesh_id
-
-                    radius *= 10
+            for point in pos:
+                tol = 1e-7
+                pt = pt_finder(self, point, tol)
+                force_id = pt.mesh_id
 
                 # Calculate force and append it to list.
                 L_load = FORCE(SID=idx_SID+1, G=force_id, F=forces_moms[idx_load][0], N1=0, N2=0, N3=1)
@@ -244,17 +223,13 @@ class FEMFileGenerator(GeomBase):
                 load_lst = [L_load, D_load, M_load]
                 p_lst.extend(load_lst)
 
+                idx_load += 1
+
             forces.extend(p_lst)
 
         entries.extend(forces)
 
-        # TODO: DELETE LATER
-        with open('output.txt', 'w') as file:
-            # Write each element of the list as a separate line in the text file
-            for item in entries:
-                file.write(str(item) + '\n')
-
-        return entries, bc_lst
+        return entries
 
     @Attribute
     def FEMwriter(self):
