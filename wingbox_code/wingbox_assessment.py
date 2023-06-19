@@ -4,7 +4,6 @@ from parapy.core.validate import *
 from .geometry.geometry_tools.winggeom import WingGeom
 from .geometry.wingbox import WingBox
 from .analysis_tools.avl_analysis import AvlAnalysis
-from .analysis_tools.get_forces import GetForces
 from .analysis_tools.femfilegenerator import FEMFileGenerator
 import csv
 import os
@@ -717,20 +716,9 @@ class WingBoxAssessment(GeomBase):
                                   'TE_ribs_gap', 'TE_skin_gap'])
 
     @Part
-    def get_forces(self):
-        """
-        Retrieves and calculates the forces from AVL
-        :return: GetForces
-        """
-        return GetForces(quantify=len(self.case_settings[2]),
-                         input_case=self.analysis,
-                         num_case=child.index + 1,
-                         flight_cond=self.analysis.flight_cond)
-
-    @Part
     def FEMFile(self):
         return FEMFileGenerator(wing=self.wingbox,
-                                cases=self.get_forces,
+                                analysis=self.analysis,
                                 quad_dominance=self.quad_dominance,
                                 min_elem_size=self.min_elem_size,
                                 max_elem_size=self.max_elem_size,
