@@ -249,4 +249,4 @@ class FEMFileGenerator(GeomBase):
         template_path = os.path.join(current_dir, '..', 'bdf_files', 'bdf_templates', 'wingbox_template.bdf')
         return Writer(self.FEMentries,
                       template_path=template_path,
-                      template_values={'SID': 1})
+                      template_values={'SID': [idx + 1 for idx, _ in enumerate(self.cases)]})

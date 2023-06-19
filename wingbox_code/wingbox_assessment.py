@@ -726,7 +726,39 @@ class WingBoxAssessment(GeomBase):
 
     @Attribute
     def FEMWrite(self):
-        return self.FEMFile.FEMwriter.write(self.bdf_file_path)
+
+        base_file = self.FEMFile.FEMwriter.write(self.bdf_file_path)
+        search_line = 'ECHO = NONE'
+        file_path = os.path.join(os.path.dirname(__file__), 'bdf_files/wingbox_bulkdata.bdf')
+
+        commands = ["SUBCASE ",
+                    "    LOAD = ",
+                    "    SPC = ",
+                    "    DISP = ALL",
+                    "    DISPLACEMENT(SORT1,REAL)=ALL",
+                    "    SPCFORCES(SORT1,REAL)=ALL",
+                    "    STRESS(SORT1,REAL,VONMISES,BILIN)=ALL"]
+
+        with open(file_path, 'r+') as file:
+            content = file.read()  # Read the entire content into a variable
+            file.seek(0)  # Move the file pointer to the beginning
+            file.truncate()  # Clear the file content
+
+            for line in content.splitlines():
+                file.write(line + '\n')  # Write the original line back
+
+                if search_line in line:
+                    for k in range(len(self.analysis.case_settings[2])):
+                        var = ''
+                        if 0 <= k < 3:
+                            var = str(k + 1)
+                        for i, command in enumerate(commands):
+                            if i < 3:
+                                file.write(command + var + '\n')
+                            else:
+                                file.write(command + '\n')
+
+        return None
 
 
 if __name__ == '__main__':
