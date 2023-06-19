@@ -105,7 +105,7 @@ class FEMFileGenerator(GeomBase):
     @Part
     def general_shape(self):
         return GeneralFuse(tools=self.wing.STEP_node_list,
-                           fuzzy_value=1e-4)
+                           fuzzy_value=1e-3)
 
     @Part
     def mesh_seed(self):
@@ -160,73 +160,80 @@ class FEMFileGenerator(GeomBase):
 
         # BCs placement for front and rear spars and root rib.
         bc_lst = []
+        bc_cnts = []
+        print(self.bcs)
         tol = 1e-7
         # If constraining root rib.
-        if 'root_rib' == self.bcs[0]:
+        for bc in self.bcs:
+            if bc[0] == 'root_rib':
+                # Getting all the points in the root rib.
+                obj = self.general_shape.vertices
+                pts = [obj[k].point for k in range(len(obj)) if obj[k].point[1] < 1e-6]
 
-            # Getting all the points in the root rib.
-            obj = self.general_shape.vertices
-            pts = [obj[k].point for k in range(len(obj)) if obj[k].point[1] < 1e-6]
+                # Popping last skin vertices values.
+                x_coords = [pt[0] for pt in pts]
+                pts.pop(x_coords.index(max(x_coords)))
+                x_coords.pop(x_coords.index(max(x_coords)))
+                pts.pop(x_coords.index(max(x_coords)))
 
-            # Popping last skin vertices values.
-            x_coords = [pt[0] for pt in pts]
-            pts.pop(x_coords.index(max(x_coords)))
-            x_coords.pop(x_coords.index(max(x_coords)))
-            pts.pop(x_coords.index(max(x_coords)))
+                bc_aux = [pt_finder(self, pt, tol).mesh_id for pt in pts]
+                bc_lst.extend(bc_aux)
+                bc_cnts.append(bc[1])
 
-            bc_aux = [pt_finder(self, pt, tol).mesh_id for pt in pts]
-            bc_lst.extend(bc_aux)
+            elif bc[0] == 'front_spar':
+                bc_aux = [
+                    pt_finder(self, self.wing.spars.spars[0].cutter_intersec_curves[0].control_points[0], tol).mesh_id,
+                    pt_finder(self, self.wing.spars.spars[0].cutter_intersec_curves[0].control_points[1], tol).mesh_id]
+                bc_lst.extend(bc_aux)
+                bc_cnts.append(bc[1])
 
-        # If constraining front spar.
-        elif 'front_spar' == self.bcs[0]:
-            bc_aux = [
-                pt_finder(self, self.wing.spars.spars[0].cutter_intersec_curves[0].control_points[0], tol).mesh_id,
-                pt_finder(self, self.wing.spars.spars[0].cutter_intersec_curves[0].control_points[1], tol).mesh_id]
-            bc_lst.extend(bc_aux)
+            elif bc[0] == 'rear_spar':
+                bc_aux = [
+                    pt_finder(self, self.wing.spars.spars[1].cutter_intersec_curves[0].control_points[0], tol).mesh_id,
+                    pt_finder(self, self.wing.spars.spars[1].cutter_intersec_curves[0].control_points[1], tol).mesh_id]
+                bc_lst.extend(bc_aux)
+                bc_cnts.append(bc[1])
 
-        # If constraining rear spar.
-        elif 'rear_spar' == self.bcs[0]:
-            bc_aux = [
-                pt_finder(self, self.wing.spars.spars[1].cutter_intersec_curves[0].control_points[0], tol).mesh_id,
-                pt_finder(self, self.wing.spars.spars[1].cutter_intersec_curves[0].control_points[1], tol).mesh_id]
-            bc_lst.extend(bc_aux)
 
-        spc1 = [SPC1(SID=idx + 1, C=int(self.bcs[1]), Gi=bc_lst) for idx in range(len(self.cases))]
+        print(bc_lst)
+        print(bc_cnts)
+        spc1 = [SPC1(SID=idx + 1, C=bc_cnts[idx], Gi=bc_lst[idx]) for idx, value in enumerate(self.bcs)]
+        print(spc1)
         entries.extend(spc1)
 
 
-        # # Defining forces and their locations for each case.
-        # pload = []
-        # load_cases = self.cases
-        # for idx_SID, load_case in enumerate(load_cases):
-        #     p_lst = []
-        #     forces_moms = load_case.forces_moms
-        #     pos = load_case.forces_moms_pos
-        #
-        #     for idx_load, point in enumerate(pos):
-        #
-        #         # Find closest grid point.
-        #         valid_pts = []
-        #         radius = 1e-3
-        #         while not valid_pts:
-        #             valid_pts = self.mesh.grid.find_nodes_near(point, radius=radius)
-        #             norms = [np.sqrt((point[0] - valid_pt[0]) ** 2 + (point[1] - valid_pt[1]) ** 2 +
-        #                              (point[2] - valid_pt[2]) ** 2) for valid_pt in valid_pts]
-        #             force_pt = valid_pts[norms.index(min(norms))]
-        #             force_id = force_pt.mesh_id
-        #
-        #             radius *= 10
-        #
-        #         # Calculate force and append it to list.
-        #         L_load = FORCE(SID=idx_SID+1, G=force_id, F=forces_moms[idx_load][0], N1=0, N2=0, N3=1)
-        #         D_load = FORCE(SID=idx_SID+1, G=force_id, F=forces_moms[idx_load][1], N1=1, N2=0, N3=0)
-        #         M_load = Moment(SID=idx_SID+1, G=force_id, M=forces_moms[idx_load][2], N1=0, N2=1, N3=0)
-        #         load_lst = [L_load, D_load, M_load]
-        #         p_lst.extend(load_lst)
-        #
-        #     pload.extend(p_lst)
-        #
-        # entries.extend(pload)
+        # Defining forces and their locations for each case.
+        forces = []
+        load_cases = self.cases
+        for idx_SID, load_case in enumerate(load_cases):
+            p_lst = []
+            forces_moms = load_case.forces_moms
+            pos = load_case.forces_moms_pos
+
+            for idx_load, point in enumerate(pos):
+
+                # Find closest grid point.
+                valid_pts = []
+                radius = 1e-3
+                while not valid_pts:
+                    valid_pts = self.mesh.grid.find_nodes_near(point, radius=radius)
+                    norms = [np.sqrt((point[0] - valid_pt[0]) ** 2 + (point[1] - valid_pt[1]) ** 2 +
+                                     (point[2] - valid_pt[2]) ** 2) for valid_pt in valid_pts]
+                    force_pt = valid_pts[norms.index(min(norms))]
+                    force_id = force_pt.mesh_id
+
+                    radius *= 10
+
+                # Calculate force and append it to list.
+                L_load = FORCE(SID=idx_SID+1, G=force_id, F=forces_moms[idx_load][0], N1=0, N2=0, N3=1)
+                D_load = FORCE(SID=idx_SID+1, G=force_id, F=forces_moms[idx_load][1], N1=1, N2=0, N3=0)
+                M_load = Moment(SID=idx_SID+1, G=force_id, M=forces_moms[idx_load][2], N1=0, N2=1, N3=0)
+                load_lst = [L_load, D_load, M_load]
+                p_lst.extend(load_lst)
+
+            forces.extend(p_lst)
+
+        entries.extend(forces)
 
         # TODO: DELETE LATER
         with open('output.txt', 'w') as file:
@@ -234,7 +241,7 @@ class FEMFileGenerator(GeomBase):
             for item in entries:
                 file.write(str(item) + '\n')
 
-        return entries
+        return entries, bc_lst
 
     @Attribute
     def FEMwriter(self):

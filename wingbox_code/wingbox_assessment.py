@@ -633,9 +633,11 @@ class WingBoxAssessment(GeomBase):
     @Part
     def FEMFile(self):
         return FEMFileGenerator(wing=self.wingbox,
+                                cases=self.get_forces,
                                 quad_dominance=self.quad_dominance,
                                 min_elem_size=self.min_elem_size,
-                                max_elem_size=self.max_elem_size)
+                                max_elem_size=self.max_elem_size,
+                                bcs=self.bcs)
 
     @Attribute
     def FEMWrite(self):
