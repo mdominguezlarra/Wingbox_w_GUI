@@ -57,6 +57,9 @@ sheet are set, you can initialize the app by running ``AA_Initialization.py``.
     Make sure that all of the package versions specified in ``requirements.txt`` are installed in your machine
     and up to date.
 
+    IMPORTANT: IF you want to add or remove an airfoil, or a section, or a load case in the GUI, it is possible by 
+    changing the variables n_airfoils, n_sections and n_loads, respectively
+
 
 There are four sheets, one for each of the modules summarized beforehand.
 

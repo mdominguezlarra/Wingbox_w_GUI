@@ -105,10 +105,6 @@ class WingBox(GeomBase):
                 msg = 'Rear spar locations must be limited between 0 and 1 to stay within the chord'
                 return False, msg
 
-            if rs_locs[i] <= self.front_spar_loc[i]:
-                msg = 'The rear spar cannot be further front than the front spar'
-                return False, msg
-
         return True
 
     @stringer_idx.validator

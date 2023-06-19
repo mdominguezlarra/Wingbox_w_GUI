@@ -379,9 +379,9 @@ class WingBoxAssessment(GeomBase):
                 msg = 'Rear spar locations must be limited between 0 and 1 to stay within the chord'
                 return False, msg
 
-            if rs_locs[i] <= self.front_spar_loc[i]:
-                msg = 'The rear spar cannot be further front than the front spar'
-                return False, msg
+            # if rs_locs[i] <= self.front_spar_loc[i]:
+            #     msg = 'The rear spar cannot be further front than the front spar'
+            #     return False, msg
 
         return True
 
@@ -556,18 +556,6 @@ class WingBoxAssessment(GeomBase):
 
         return True
 
-    @max_elem_size.validator
-    def max_elem_size(self, value):
-        """
-        Verifies that the minimum element size is not larger than the maximum element size
-        :param value:
-        :return:
-        """
-        if value < self.min_elem_size:
-            msg = 'Maximum element size cannot be smaller than the minimum element size.'
-            return False, msg
-
-        return True
 
     @secs.validator
     def secs(self, cs_lst):
