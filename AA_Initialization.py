@@ -254,29 +254,30 @@ mat_1D = [material_name(df_i, 32, 'stringers'),
 # Sheet 4
 df_i = dfs[3]
 
-# Mesh Details
-
-bdf_file_folder = 'wingbox_code/bdf_files'
-if df_i.iloc[6, 1] is not np.nan:
+# File paths.
+nastran_path = df_i.iloc[6, 1]
+bdf_file_folder = r"wingbox_code\bdf_files"
+if df_i.iloc[7, 1] is not np.nan:
     bdf_file_folder = df_i.iloc[6, 1]
 
-tc_select = df_i.iloc[7, 1]
-min_elem_size = df_i.iloc[8, 1]
-max_elem_size = df_i.iloc[9, 1]
+# Mesh Details
+tc_select = df_i.iloc[8, 1]
+min_elem_size = df_i.iloc[9, 1]
+max_elem_size = df_i.iloc[10, 1]
 quad_dominance = False
 
-if df_i.iloc[10, 1] == 'Y' or df_i.iloc[10, 1] == 'y':
+if df_i.iloc[11, 1] == 'Y' or df_i.iloc[11, 1] == 'y':
     quad_dominance = True
-# elif df_i.iloc[10, 1] != 'N' and df_i.iloc[10, 1] != 'n' and df_i.iloc[10, 1] is not np.NaN:
-    # msg = 'Input Y, N or leave empty for the quad dominance input to be valid.'
-    # warnings.warn(msg)
-    # generate_warning('Warning: Tri or Quad Dominance?', msg)
+elif df_i.iloc[11, 1] != 'N' and df_i.iloc[11, 1] != 'n' and df_i.iloc[11, 1] is not np.NaN:
+    msg = 'Input Y, N or leave empty for the quad dominance input to be valid.'
+    warnings.warn(msg)
+    generate_warning('Warning: Tri or Quad Dominance?', msg)
 
 bcs = []
 labels = ['root_rib', 'front_spar', 'rear_spar']
 
 for i in range(3):
-    sliced = pd.Index.notna(df_i.iloc[13+i, 1:7])
+    sliced = pd.Index.notna(df_i.iloc[14+i, 1:7])
     dof = ''
     for j in range(6):
         if sliced[j]:
@@ -335,6 +336,7 @@ WING = WingBoxAssessment(root_chord=root_chord,
                           secs=secs,
                           mat_2D=mat_2D,
                           mat_1D=mat_1D,
+                          nastran_path=nastran_path,
                           bdf_file_folder=bdf_file_folder,
                           min_elem_size=min_elem_size,
                           max_elem_size=max_elem_size,
