@@ -764,6 +764,7 @@ class WingBoxAssessment(GeomBase):
             :return: WingBox
         """
         return WingBox(wing=self.wing_geom,
+                       color='gray',
                        pass_down=['rib_idx', 'front_spar_loc', 'rear_spar_loc', 'stringer_idx',
                                   'TE_ribs_gap', 'TE_skin_gap', 'n_sections'])
 

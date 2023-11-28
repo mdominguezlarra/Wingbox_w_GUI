@@ -33,7 +33,8 @@ class SkinSystem(GeomBase):
     @Part
     def skin(self):
         return SewnShell([section for section in self.skin_lst],
-                         mesh_deflection=1e-4)
+                         mesh_deflection=1e-4,
+                         transparency=0.65)
 
 if __name__ == '__main__':
     from parapy.gui import display
