@@ -43,11 +43,11 @@ def appender(data_frame, row_idx, label, type_i, rib_str=False, ):
     while data_frame.iloc[row_idx, column_idx] is not np.nan:
         input_lst.append(data_frame.iloc[row_idx, column_idx])
         column_idx = column_idx + 1
-        if not isinstance(input_lst[-1], type_i):
-            # error message
-            msg = 'Wrong input type for {}, correct type is {}'.format(label, type_i)
-            warnings.warn(msg)
-            generate_warning('Warning: Wrong Input Type', msg)
+        # if not isinstance(input_lst[-1], type_i):
+        #     # error message
+        #     msg = 'Wrong input type for {}, correct type is {}'.format(label, type_i)
+        #     warnings.warn(msg)
+        #     generate_warning('Warning: Wrong Input Type', msg)
 
     return input_lst
 
@@ -64,21 +64,21 @@ def material_name(data_frame, row_idx, label):
     warn = False
     msg_m = ''
 
-    if data_frame.iloc[row_idx, 1] not in ['Al2024', 'Al750', 'Al7475']:
-        msg_m = 'Material Input A: Invalid material name for {}.'.format(label)
-        warn = True
-
-    elif data_frame.iloc[row_idx, 2] not in ['T3', 'T7451', 'T61']:
-        msg_m = 'Material Input B:Invalid material temper for {}.'.format(label)
-        warn = True
-
-    elif data_frame.iloc[row_idx, 4] not in ['A', 'B', 'S']:
-        msg_m = 'Material Input D: Invalid material basis for {}.'.format(label)
-        warn = True
-
-    if warn:
-        warnings.warn(msg_m)
-        generate_warning('Warning: Material', msg_m)
+    # if data_frame.iloc[row_idx, 1] not in ['Al2024', 'Al750', 'Al7475']:
+    #     msg_m = 'Material Input A: Invalid material name for {}.'.format(label)
+    #     warn = True
+    #
+    # elif data_frame.iloc[row_idx, 2] not in ['T3', 'T7451', 'T61']:
+    #     msg_m = 'Material Input B:Invalid material temper for {}.'.format(label)
+    #     warn = True
+    #
+    # elif data_frame.iloc[row_idx, 4] not in ['A', 'B', 'S']:
+    #     msg_m = 'Material Input D: Invalid material basis for {}.'.format(label)
+    #     warn = True
+    #
+    # if warn:
+    #     warnings.warn(msg_m)
+    #     generate_warning('Warning: Material', msg_m)
 
     while data_frame.iloc[row_idx, column_idx] is not np.nan:
         material = material + '-' + str(data_frame.iloc[row_idx, column_idx])
@@ -152,8 +152,8 @@ incidence = df_i.iloc[3, 1]
 twist = [incidence] + appender(df_i, 10, 'twists', (float, int))
 
 # Type check
-type_warning(root_chord, 'root chord', (float, int))
-type_warning(incidence, 'incidence angle', (float, int))
+# type_warning(root_chord, 'root chord', (float, int))
+# type_warning(incidence, 'incidence angle', (float, int))
 
 # Airfoil Placement
 
@@ -165,19 +165,19 @@ airfoil_sections = sorted(airfoil_sections_unordered)
 
 # Checking for errors
 
-if len(airfoil_names) != len(airfoil_sections):
+# if len(airfoil_names) != len(airfoil_sections):
     # error message
-    msg = 'Please input as many airfoil names as spanwise positions.'
-    warnings.warn(msg)
-    generate_warning('Warning: Airfoils', msg)
+    # msg = 'Please input as many airfoil names as spanwise positions.'
+    # warnings.warn(msg)
+    # generate_warning('Warning: Airfoils', msg)
 
 n_airfoils = len(airfoil_names)
 
-if (0 or 1) not in airfoil_sections:
+# if (0 or 1) not in airfoil_sections:
     # error message
-    msg = 'Either no tip or no root airfoil was input'
-    warnings.warn(msg)
-    generate_warning('Warning: Root/tip Airfoil', msg)
+    # msg = 'Either no tip or no root airfoil was input'
+    # warnings.warn(msg)
+    # generate_warning('Warning: Root/tip Airfoil', msg)
 
 
 # Sheet 2
@@ -192,9 +192,9 @@ speed = df_i.iloc[7, 1]
 height = df_i.iloc[8, 1]
 
 # Type check
-type_warning(weight, 'weight', (float, int))
-type_warning(speed, 'speed', (float, int))
-type_warning(height, 'altitude', (float, int))
+# type_warning(weight, 'weight', (float, int))
+# type_warning(speed, 'speed', (float, int))
+# type_warning(height, 'altitude', (float, int))
 
 
 # Sheet 3
@@ -215,9 +215,9 @@ if len(top_stringers) == len(bottom_stringers):                # Checking for co
 else:
     stringer_idx = []
     # error message
-    msg = 'Number of sections with top and bottom stringers is not coherent. Revise the input file.'
-    warnings.warn(msg)
-    generate_warning('Warning: Stringer Sections', msg)
+    # msg = 'Number of sections with top and bottom stringers is not coherent. Revise the input file.'
+    # warnings.warn(msg)
+    # generate_warning('Warning: Stringer Sections', msg)
 
 TE_skin_gap = df_i.iloc[11, 1]
 TE_ribs_gap = df_i.iloc[12, 1]
@@ -230,12 +230,12 @@ for i in range(3):
         label = 'dims'
     elif len(csi) == 4:
         label = 'moms'
-    else:
-        msg = 'Cross-section input ill-posed. Input 2 dimensions of length and width or 4 dimensions of moment' \
-              ' of inertia as defined in the input sheet.'
-        warnings.warn(msg)
-        generate_warning('Warning: Wrong Cross-section Input', msg)
-        label = ''
+    # else:
+        # msg = 'Cross-section input ill-posed. Input 2 dimensions of length and width or 4 dimensions of moment' \
+        #       ' of inertia as defined in the input sheet.'
+        # warnings.warn(msg)
+        # generate_warning('Warning: Wrong Cross-section Input', msg)
+        # label = ''
     secs.append([csi, label])
 
 mat_2D = [material_name(df_i, 31, 'skin'),
@@ -247,8 +247,8 @@ mat_1D = [material_name(df_i, 32, 'stringers'),
           material_name(df_i, 30, 'rib caps')]
 
 # Type check
-type_warning(TE_ribs_gap, 'rib TE cut', (float, int))
-type_warning(TE_skin_gap, 'skin TE cut', (float, int))
+# type_warning(TE_ribs_gap, 'rib TE cut', (float, int))
+# type_warning(TE_skin_gap, 'skin TE cut', (float, int))
 
 
 # Sheet 4
@@ -267,10 +267,10 @@ quad_dominance = False
 
 if df_i.iloc[10, 1] == 'Y' or df_i.iloc[10, 1] == 'y':
     quad_dominance = True
-elif df_i.iloc[10, 1] != 'N' and df_i.iloc[10, 1] != 'n' and df_i.iloc[10, 1] is not np.NaN:
-    msg = 'Input Y, N or leave empty for the quad dominance input to be valid.'
-    warnings.warn(msg)
-    generate_warning('Warning: Tri or Quad Dominance?', msg)
+# elif df_i.iloc[10, 1] != 'N' and df_i.iloc[10, 1] != 'n' and df_i.iloc[10, 1] is not np.NaN:
+    # msg = 'Input Y, N or leave empty for the quad dominance input to be valid.'
+    # warnings.warn(msg)
+    # generate_warning('Warning: Tri or Quad Dominance?', msg)
 
 bcs = []
 labels = ['root_rib', 'front_spar', 'rear_spar']
@@ -291,14 +291,14 @@ for i in range(3):
 lengths = [len(sweeps), len(dihedrals), len(rib_idx), len(stringer_idx), len(spans)-1, len(tapers)-1,
            len(twist)-1, len(front_spar_loc)-1, len(rear_spar_loc)-1]
 
-coherence_warning(lengths, len(sweeps), 'wing sections', 'Wing Geometry')
+# coherence_warning(lengths, len(sweeps), 'wing sections', 'Wing Geometry')
 n_sections = len(sweeps)
 
 # Checking coherence for the load cases
 
 length_load = [len(i) for i in case_settings]
 
-coherence_warning(length_load, len(case_settings[0]), 'load cases', 'Load Cases')
+# coherence_warning(length_load, len(case_settings[0]), 'load cases', 'Load Cases')
 n_loads = len(case_settings[0])
 
 # Print inputs
@@ -311,7 +311,7 @@ n_loads = len(case_settings[0])
 
 # INITIALIZATION
 
-display(WingBoxAssessment(root_chord=root_chord,
+WING = WingBoxAssessment(root_chord=root_chord,
                           n_sections=n_sections,
                           spans=spans,
                           tapers=tapers,
@@ -340,4 +340,4 @@ display(WingBoxAssessment(root_chord=root_chord,
                           max_elem_size=max_elem_size,
                           tc_select=tc_select,
                           quad_dominance=quad_dominance,
-                          bcs=bcs))
+                          bcs=bcs)
