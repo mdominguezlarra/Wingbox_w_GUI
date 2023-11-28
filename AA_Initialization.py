@@ -256,9 +256,9 @@ df_i = dfs[3]
 
 # Mesh Details
 
-bdf_file_path = 'wingbox_code/bdf_files/wingbox_bulkdata.bdf'
+bdf_file_folder = 'wingbox_code/bdf_files'
 if df_i.iloc[6, 1] is not np.nan:
-    bdf_file_path = df_i.iloc[6, 1]
+    bdf_file_folder = df_i.iloc[6, 1]
 
 tc_select = df_i.iloc[7, 1]
 min_elem_size = df_i.iloc[8, 1]
@@ -335,7 +335,7 @@ WING = WingBoxAssessment(root_chord=root_chord,
                           secs=secs,
                           mat_2D=mat_2D,
                           mat_1D=mat_1D,
-                          bdf_file_path=bdf_file_path,
+                          bdf_file_folder=bdf_file_folder,
                           min_elem_size=min_elem_size,
                           max_elem_size=max_elem_size,
                           tc_select=tc_select,

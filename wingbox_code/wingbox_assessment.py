@@ -65,7 +65,7 @@ class WingBoxAssessment(GeomBase):
     # FEM MODEL INPUTS
     # AERODYNAMIC LOADS ARE AUTOMATICALLY CALCULATED USING GET_FORCES.
     # File path for .bdf file.
-    bdf_file_path = Input('wingbox_code/bdf_files/wingbox_bulkdata.bdf', validator=Optional(IsInstance(str)))
+    bdf_file_folder = Input('wingbox_code/bdf_files', validator=Optional(IsInstance(str)))
     quad_dominance = Input(False, validator=IsInstance(bool))
     min_elem_size = Input(validator=And(IsInstance((float, int)), Positive()))
     max_elem_size = Input(validator=And(IsInstance((float, int)), Positive()))
@@ -532,15 +532,15 @@ class WingBoxAssessment(GeomBase):
 
         return
 
-    @bdf_file_path.validator
-    def bdf_file_path(self, path):
+    @bdf_file_folder.validator
+    def bdf_file_folder(self, path):
         """
         Verifies that the bdf file path exists
         :param path:
         :return:
         """
-        if not os.path.exists(path):
-            msg = 'Wrong .bdf file path. Please make sure the file is in the specified path.'
+        if not os.path.isdir(path):
+            msg = 'Folder to save .bdf file does not exist. Please create this folder or correct the folder path.'
             return False, msg
 
         return True
@@ -676,10 +676,13 @@ class WingBoxAssessment(GeomBase):
     @Attribute
     def FEMWrite(self):
         """ Writes the load cases to the above written NASTRAN file. """
-        base_file = self.FEMFile.FEMwriter.write(self.bdf_file_path)
-        search_line = 'ECHO = NONE'
-        file_path = os.path.join(os.path.dirname(__file__), 'bdf_files/wingbox_bulkdata.bdf')
+        file_name = '/wingbox_bulkdata.bdf'
+        local_file_path = self.bdf_file_folder + file_name
+        base_file = self.FEMFile.FEMwriter.write(local_file_path)
 
+        global_file_path = os.path.join(os.path.dirname(__file__), 'bdf_files/wingbox_bulkdata.bdf')
+
+        search_line = 'ECHO = NONE'
         commands = ["SUBCASE ",
                     "    LOAD = ",
                     "    SPC = ",
@@ -688,7 +691,7 @@ class WingBoxAssessment(GeomBase):
                     "    SPCFORCES(SORT1,REAL)=ALL",
                     "    STRESS(SORT1,REAL,VONMISES,BILIN)=ALL"]
 
-        with open(file_path, 'r+') as file:
+        with open(global_file_path, 'r+') as file:
             content = file.read()  # Read the entire content into a variable
             file.seek(0)  # Move the file pointer to the beginning
             file.truncate()  # Clear the file content
