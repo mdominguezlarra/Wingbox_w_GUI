@@ -244,7 +244,7 @@ class FEMFileGenerator(GeomBase):
         return entries
 
     @Attribute
-    def FEMwriter(self):
+    def FEMWriter(self):
         current_dir = os.path.dirname(os.path.abspath(__file__))
         template_path = os.path.join(current_dir, '..', 'bdf_files', 'bdf_templates', 'wingbox_template.bdf')
         return Writer(self.FEMentries,

@@ -9,6 +9,97 @@ from .analysis_tools.femfilegenerator import FEMFileGenerator
 import os
 import shutil
 import matplotlib.pyplot as plt
+import subprocess
+import time
+import psutil
+
+
+def check_nastran_running():
+    for proc in psutil.process_iter(['pid', 'name']):
+        if "nastran" in proc.info['name'].lower():
+            return True
+    return False
+
+
+def bdf_file_cases(file_path, case_settings):
+    """ Adds the subcases to be run by NASTRAN in the BDF file. """
+
+    search_line = 'ECHO = NONE'
+    commands = ["SUBCASE ",
+                "    LOAD = ",
+                "    SPC = ",
+                "    DISP = ALL",
+                "    DISPLACEMENT(SORT1,REAL)=ALL",
+                "    SPCFORCES(SORT1,REAL)=ALL",
+                "    STRESS(SORT1,REAL,VONMISES,BILIN)=ALL"]
+
+    with open(file_path, 'r+') as file:
+        content = file.read()  # Read the entire content into a variable
+        file.seek(0)  # Move the file pointer to the beginning
+        file.truncate()  # Clear the file content
+
+        for line in content.splitlines():
+            file.write(line + '\n')  # Write the original line back
+
+            if search_line in line:
+                for k in range(len(case_settings)):
+                    var = ''
+                    if 0 <= k < 3:
+                        var = str(k + 1)
+                    for i, command in enumerate(commands):
+                        if i < 3:
+                            file.write(command + var + '\n')
+                        else:
+                            file.write(command + '\n')
+
+
+def get_plots_reacts(load_cases):
+    for idx, case in enumerate(load_cases):
+        ids = ['L', 'D', 'M']
+        L_vec = [load[0] for load in case.forces_moms]
+        D_vec = [load[1] for load in case.forces_moms]
+        M_vec = [load[2] for load in case.forces_moms]
+        F_vec = [L_vec, D_vec, M_vec]
+        y_vec = [pos[1] for pos in case.forces_moms_pos]
+
+        # Plotting and saving.
+        px = 1 / plt.rcParams['figure.dpi']
+        for id, vec in enumerate(F_vec):
+            plt.figure(figsize=(800 * px, 600 * px))
+            plot_handle = plt.plot(y_vec, vec)
+            plt.grid(True)
+            plt.xlabel('y [m]')
+            plt.ylabel(ids[id] + ' [N]')
+            path_to_save = os.path.join(os.path.dirname(__file__),
+                                        r'output_data\avl_plots\ ' + ids[id] + '_case_' + str(idx + 1))
+            plt.savefig(path_to_save)
+
+    # Getting general forces and reactions for each case.
+    f06_loc = os.path.join(os.path.dirname(__file__), r'output_data\wingbox_bulkdata.f06')
+    react_loc = r'output_data\react_forces_moms\ '
+    totals_lst = []
+
+    with open(f06_loc, 'r') as file:
+        for line in file:
+            if '             TOTALS' in line:
+                totals_lst.append(line)
+
+    totals_lst = totals_lst[0:3]
+
+    for idx, react in enumerate(totals_lst):
+        values = react.split()
+        label = values[0].strip()
+        values = [float(val) for val in values[1:]]
+        write_path = os.path.join(os.path.dirname(__file__), react_loc + 'react_SUBCASE' + str(idx + 1) + '.txt')
+
+        with open(write_path, 'w') as file:
+            file.write('THE TOTAL REACTION FORCES OF THE STRUCTURE OF THE WING ARE:\n')
+            file.write('FX=' + str(round(values[0], 3)) + ' N \n')
+            file.write('FY=' + str(round(values[1], 3)) + ' N \n')
+            file.write('FZ=' + str(round(values[2], 3)) + ' N \n')
+            file.write('MX=' + str(round(values[3], 3)) + ' Nm \n')
+            file.write('MY=' + str(round(values[4], 3)) + ' Nm \n')
+            file.write('MZ=' + str(round(values[5], 3)) + ' Nm \n')
 
 
 class WingBoxAssessment(GeomBase):
@@ -64,8 +155,12 @@ class WingBoxAssessment(GeomBase):
 
     # FEM MODEL INPUTS
     # AERODYNAMIC LOADS ARE AUTOMATICALLY CALCULATED USING GET_FORCES.
-    # File path for .bdf file.
-    bdf_file_folder = Input('wingbox_code/bdf_files', validator=Optional(IsInstance(str)))
+    # File paths for .bdf file and NASTRAN executable.
+    bdf_file_folder = Input(r"wingbox_code\bdf_files", validator=Optional(IsInstance(str)))
+    nastran_path = Input(r'"C:\Program Files\MSC.Software\NaPa_SE\20231\Nastran\bin\nastranw.exe"',
+                         validator=IsInstance(str))
+
+    # Mesh definition.
     quad_dominance = Input(False, validator=IsInstance(bool))
     min_elem_size = Input(validator=And(IsInstance((float, int)), Positive()))
     max_elem_size = Input(validator=And(IsInstance((float, int)), Positive()))
@@ -256,7 +351,7 @@ class WingBoxAssessment(GeomBase):
         :return:
         """
 
-        name_database_dat = os.listdir('wingbox_code/input_data/airfoils')
+        name_database_dat = os.listdir(r'wingbox_code\input_data\airfoils')
         name_database = [name.split('.')[0] for name in name_database_dat]
 
         if len(names) != self.n_airfoils:
@@ -532,6 +627,16 @@ class WingBoxAssessment(GeomBase):
 
         return
 
+    @nastran_path.validator
+    def nastran_path(self, path):
+        """ Verifies if the NASTRAN path exists """
+
+        if not os.path.exists(path):
+            msg = 'NASTRAN folder/executable does not exist. Please install NASTRAN, or correct the folder path.'
+            return False, msg
+
+        return True
+
     @bdf_file_folder.validator
     def bdf_file_folder(self, path):
         """
@@ -656,7 +761,7 @@ class WingBoxAssessment(GeomBase):
     def wingbox(self):
         """
         Creates the wingbox structure
-        :return: WingBox
+            :return: WingBox
         """
         return WingBox(wing=self.wing_geom,
                        pass_down=['rib_idx', 'front_spar_loc', 'rear_spar_loc', 'stringer_idx',
@@ -673,109 +778,62 @@ class WingBoxAssessment(GeomBase):
                                 bcs=self.bcs)
 
     @Attribute
-    def FEMWrite(self):
-        """ Writes the load cases to the above written NASTRAN file. """
-        file_name = '/wingbox_bulkdata.bdf'
+    def FEMAnalysis(self):
+        """ Defines the .bdf file, run it using NASTRAN and sort output data. """
+
+        # Writing .bdf file.
+        file_name = r'\wingbox_bulkdata.bdf'
         local_file_path = self.bdf_file_folder + file_name
-        base_file = self.FEMFile.FEMwriter.write(local_file_path)
+        base_file = self.FEMFile.FEMWriter.write(local_file_path)
+        global_file_path = os.path.join(os.path.dirname(__file__), r'bdf_files\wingbox_bulkdata.bdf')
 
-        global_file_path = os.path.join(os.path.dirname(__file__), 'bdf_files/wingbox_bulkdata.bdf')
+        # Adding subcases to the .bdf file.
+        case_settings = self.analysis.case_settings[2]
+        bdf_file_cases(global_file_path, case_settings)
 
-        search_line = 'ECHO = NONE'
-        commands = ["SUBCASE ",
-                    "    LOAD = ",
-                    "    SPC = ",
-                    "    DISP = ALL",
-                    "    DISPLACEMENT(SORT1,REAL)=ALL",
-                    "    SPCFORCES(SORT1,REAL)=ALL",
-                    "    STRESS(SORT1,REAL,VONMISES,BILIN)=ALL"]
+        # Running NASTRAN.
+        nastran_command = '"' + self.nastran_path + '" "' + global_file_path + '"'
+        try:
+            subprocess.run(nastran_command, check=True)
+            print(f"Input file successfully processed by NASTRAN. Wait for the software to run the FEM analysis.")
+        except subprocess.CalledProcessError as e:
+            print(f"Error running NASTRAN: {e}")
 
-        with open(global_file_path, 'r+') as file:
-            content = file.read()  # Read the entire content into a variable
-            file.seek(0)  # Move the file pointer to the beginning
-            file.truncate()  # Clear the file content
+        while check_nastran_running():
+            time.sleep(5)  # Wait for 1 second before checking again
 
-            for line in content.splitlines():
-                file.write(line + '\n')  # Write the original line back
+        # Define source paths for NASTRAN files.
+        source_files = {
+            'f04': 'wingbox_bulkdata.f04',
+            'f06': 'wingbox_bulkdata.f06',
+            'log': 'wingbox_bulkdata.log'
+        }
 
-                if search_line in line:
-                    for k in range(len(self.analysis.case_settings[2])):
-                        var = ''
-                        if 0 <= k < 3:
-                            var = str(k + 1)
-                        for i, command in enumerate(commands):
-                            if i < 3:
-                                file.write(command + var + '\n')
-                            else:
-                                file.write(command + '\n')
+        # Define destination directories for NASTRAN files
+        bdf_files_path = os.path.join(os.path.dirname(__file__), 'bdf_files')
+        output_data_path = os.path.join(os.path.dirname(__file__), 'output_data')
 
-        return None
+        # Copying NASTRAN files to respective directories.
+        for file_key, file_name in source_files.items():
+            source_file_path = os.path.join(os.getcwd(), file_name)
 
-    @Attribute
-    def OutData(self):
-        """ Transfer files to output_data folder. """
-        # Copying .f06 file to output_data.
-        dest_folder = os.path.join(os.path.dirname(__file__), 'output_data')
-        source_f06 = os.path.join(os.path.dirname(__file__), 'bdf_files/wingbox_bulkdata.f06')
-        destination_file = os.path.join(dest_folder, os.path.basename(source_f06))
-        shutil.copy2(source_f06, destination_file)
+            if file_key == 'f06':
+                shutil.copy2(source_file_path, os.path.join(bdf_files_path, os.path.basename(source_file_path)))
+                shutil.copy2(source_file_path, os.path.join(output_data_path, os.path.basename(source_file_path)))
+            else:
+                dest_file_path = os.path.join(bdf_files_path, os.path.basename(source_file_path))
+                shutil.copy2(source_file_path, dest_file_path)
+
+            os.remove(source_file_path)
 
         # Creating STEP file of the geometry in the folder.
-        self.wingbox.STEP_file.write(os.path.join(dest_folder, 'wingbox_STEP.stp'))
+        self.wingbox.STEP_file.write(os.path.join(output_data_path, 'wingbox_STEP.stp'))
 
-        # # Creating plots for the spar placement.
-        # frt_spar_pts = [self.wingbox.spars.spars[0].cutter_intersec_curves[k].control_points for k
-        #                 in range(len(self.wingbox.spars.spars[0].cutter_intersec_curves))]
-        # rear_spar_pts = [self.wingbox.spars.spars[1].cutter_intersec_curves[k].control_points for k
-        #                 in range(len(self.wingbox.spars.spars[1].cutter_intersec_curves))]
-
-        # Creating plots for AVL distributions of lift.
+        # Getting plots and reactions, and saving in the appropriate output folder.
         load_cases = self.FEMFile.cases
-        for idx, case in enumerate(load_cases):
-            ids = ['L', 'D', 'M']
-            L_vec = [load[0] for load in case.forces_moms]
-            D_vec = [load[1] for load in case.forces_moms]
-            M_vec = [load[2] for load in case.forces_moms]
-            F_vec = [L_vec, D_vec, M_vec]
-            y_vec = [pos[1] for pos in case.forces_moms_pos]
+        get_plots_reacts(load_cases)
 
-            # Plotting and saving.
-            px = 1 / plt.rcParams['figure.dpi']
-            for id, vec in enumerate(F_vec):
-                plt.figure(figsize=(800*px, 600*px))
-                plot_handle = plt.plot(y_vec, vec)
-                plt.grid(True)
-                plt.xlabel('y [m]')
-                plt.ylabel(ids[id] + ' [N]')
-                path_to_save = os.path.join(os.path.dirname(__file__), 'output_data/avl_plots/' + ids[id] +'_case_' + str(idx + 1))
-                plt.savefig(path_to_save)
-
-        # Getting general forces and reactions for each case.
-        f06_loc = os.path.join(os.path.dirname(__file__), 'output_data/wingbox_bulkdata.f06')
-        react_loc = 'output_data/react_forces_moms/'
-        totals_lst = []
-
-        with open(f06_loc, 'r') as file:
-            for line in file:
-                if '             TOTALS' in line:
-                    totals_lst.append(line)
-
-        totals_lst = totals_lst[0:3]
-
-        for idx, react in enumerate(totals_lst):
-            values = react.split()
-            label = values[0].strip()
-            values = [float(val) for val in values[1:]]
-            write_path = os.path.join(os.path.dirname(__file__), react_loc + 'react_SUBCASE' + str(idx + 1) + '.txt')
-
-            with open(write_path, 'w') as file:
-                file.write('THE TOTAL REACTION FORCES OF THE STRUCTURE OF THE WING ARE:\n')
-                file.write('FX=' + str(round(values[0], 3)) + ' N \n')
-                file.write('FY=' + str(round(values[1], 3)) + ' N \n')
-                file.write('FZ=' + str(round(values[2], 3)) + ' N \n')
-                file.write('MX=' + str(round(values[3], 3)) + ' Nm \n')
-                file.write('MY=' + str(round(values[4], 3)) + ' Nm \n')
-                file.write('MZ=' + str(round(values[5], 3)) + ' Nm \n')
+        print(f"FEM Analysis has finished running. Check output in the 'output_data' folder.")
 
         return None
 
