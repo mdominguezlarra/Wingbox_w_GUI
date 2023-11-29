@@ -6,8 +6,8 @@ from .geometry.wingbox import WingBox
 from .analysis_tools.avl_analysis import AvlAnalysis
 from .format.tk_warn import type_warning, material_validation
 from .analysis_tools.femfilegenerator import FEMFileGenerator
-from .analysis_tools.get_plots import get_plots
-from .analysis_tools.get_reactions import get_reactions
+from .output_tools.get_plots import get_plots
+from .output_tools.get_reactions import get_reactions
 import os
 import shutil
 import matplotlib.pyplot as plt
