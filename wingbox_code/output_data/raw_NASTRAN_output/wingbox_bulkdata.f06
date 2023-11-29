@@ -1,0 +1,557 @@
+1
+ 
+ 
+ 
+ 
+                      Warning: This computer program is protected by copyright law and international treaties.       
+                  Unauthorized use, reproduction or distribution of this computer program, or any portion of it, may 
+                                          result in severe civil and criminal penalties.                             
+                         Copyright (C) 2023 Hexagon AB and/or its subsidiaries. All rights reserved.                 
+ 
+ 
+                                              * * * * * * * * * * * * * * * * * * * *
+                                              * * * * * * * * * * * * * * * * * * * *
+                                              * *                                 * *
+                                              * *           Hexagon AB            * *
+                                              * *                                 * *
+                                              * *                                 * *
+                                              * *      M S C   N a s t r a n      * *
+                                              * *                                 * *
+                                              * *  S T U D E N T   E D I T I O N  * *
+                                              * *                                 * *
+                                              * *     Version 2023.1-CL914096     * *
+                                              * *                                 * *
+                                              * *                                 * *
+                                              * *                                 * *
+                                              * *          MAR 30, 2023           * *
+                                              * *                                 * *
+                                              * *              Intel              * *
+                                              * *MODEL Intel(R) Core(TM) i7-7500U * *
+                                              * * Windows 10 Home Single 6.2 9200 * *
+                                              * * Compiled for 8664 (SINGLE Mode) * *
+                                              * *                                 * *
+                                              * * * * * * * * * * * * * * * * * * * *
+                                              * * * * * * * * * * * * * * * * * * * *
+
+ 
+ 
+                                                 This Student Edition version is  
+                                                    valid until MAR 15, 2025.     
+ 
+ 
+                  This program is being distributed as part of the Hexagon AB Student Edition. Use of this program   
+                     or its results at a commercial installation, for commercial purposes, or for production work    
+                                             I S   S T R I C T L Y  P R O H I B I T E D.                             
+                  ==================================== FOR EDUCATIONAL USE ONLY =====================================
+ 
+ 
+1News file - (February 21st, 2023)
+  
+               Welcome to MSC Nastran 2023.1
+  
+   MSC Nastran brings powerful new features and enhancements for engineering
+   solutions in several releases through the year. Key enhancements in
+   Version 2023.1 are summarized below. Addtional details can be found in
+   the MSC Nastran Version 2023.1 Release Guide.
+  
+     MSC Nastran 2023.1 Features and Enhancements
+  
+     HPC
+     - Reduced memory requirements for ACMS when large numbers of RBE3 elements
+       are present in the model
+     - Support for AMD AOCL libraries
+  
+     Documentation
+     - The complete documentation set is provided in a separate installer and
+       when installed is available at: MSC_DOC_DIR/doc/pdf_nastran directory,
+       where MSC_DOC_DIR is the directory where documentation was installed.
+       This help set includes cross references between documents, and links to
+       how-to videos, and example files
+  
+     Individual MSC Nastran documents are available for download from the
+       Simcompanion Website at:
+       http://simcompanion.hexagon.com/
+  
+     These documents were updated for the MSC Nastran 2023.1 Release
+  
+         1.  MSC Nastran 2023.1 Installation and Operations Guide
+         2.  MSC Nastran 2023.1 Quick Reference Guide
+         3.  MSC Nastran 2023.1 Release Guide
+         4.  MSC Nastran 2023.1 Linear Statics Analysis User's Guide
+         5.  MSC Nastran 2023.1 Dynamic Analysis User's Guide
+         6.  MSC Nastran 2023.1 Superelements User's Guide
+         7.  MSC Nastran 2023.1 Rotordynamics User's Guide
+         8.  MSC Nastran 2023.1 Demonstration Problems Manual
+         9.  MSC Nastran 2023.1 Nastran Embedded Fatigue User's Guide
+        10.  MSC Nastran 2023.1 Design Sensitivity and Optimization
+        11.  MSC Nastran 2023.1 Nonlinear User's Guide SOL 400
+        12.  MSC Nastran 2023.1 DMAP Programmer's Guide
+        13.  MSC Nastran 2023.1 High Performance Computing User's Guide
+        14.  MSC Nastran 2023.1 New Verification Manual
+        15.  MSC Nastran 2023.1 DEMATD Guide
+        16.  MSC Nastran 2023.1 Explicit Nonlinear (SOL 700) User's Guide
+        17.  MSC Nastran 2023.1 ACMS User's Guide
+  
+   Please refer to  MSC_DOC_DIR/doc/pdf_nastran/nastran_library.pdf
+   for the complete document set:
+  
+1 
+   Additional information about the release can be found at the MSC Nastran
+   Product Support page: http://simcompanion.hexagon.com
+  
+   The support page provides links to these valuable information:
+      * A searchable Knowledge Base containing examples and answers to thousands
+        of frequently asked questions written by MSC Software subject-matter
+        experts.
+      * Peer-to-peer Discussion Forums enabling you to post questions for your
+        MSC Software products and receive answers from other users worldwide.
+      * A list of known issues with the product and any workarounds.
+      * Instructions on how to contact technical support
+      * A mechanism for sending us product feedback or enhancement requests.
+      * Hardware and software requirements.
+      * Examples and Tutorials
+      * and much more.
+  
+   For information on training, please visit our Training web site
+  
+      https://www.mscsoftware.com/msc-training
+  
+1                                                       **STUDENT EDITION* NOVEMBER  29, 2023  MSC Nastran  3/30/23   PAGE     1
+                                                                                                                                    
+0        N A S T R A N    F I L E    A N D    S Y S T E M    P A R A M E T E R    E C H O                                           
+0                                                                                                                                   
+                                                                                                                                    
+                                                                                                                                    
+     NASTRAN BUFFSIZE=8193 $(C:/PROGRAM FILES/MSC.SOFTWARE/NAPA_SE/20231/NASTRAN/CONF
+     $ ---GENERAL---                                                                 
+     $ GENERATED BY PARAPY-NASTRAN INTERFACE                                         
+     $ DATE: 2023-11-29 00:51:26                                                     
+     $ PROJECT:                                                                      
+     $ SOME CUSTOM TEXT                                                              
+     $ ---EXECUTIVE CONTROL---                                                       
+     $ CUSTOM STATEMENTS                                                             
+     $ ---CASE CONTROL---                                                            
+1                                                       **STUDENT EDITION* NOVEMBER  29, 2023  MSC Nastran  3/30/23   PAGE     2
+                                                                                                                                    
+0        N A S T R A N    E X E C U T I V E    C O N T R O L    E C H O                                                             
+0                                                                                                                                   
+                                                                                                                                    
+                                                                                                                                    
+     SOL 101                                                                                 
+     CEND                                                                                    
+1    WINGBOX                                            **STUDENT EDITION* NOVEMBER  29, 2023  MSC Nastran  3/30/23   PAGE     3
+                                                                                                                                    
+0                                                                                                                                   
+0                                        C A S E    C O N T R O L    E C H O                                                        
+                 COMMAND                                                                                                            
+                 COUNT                                                                                                              
+                  1      TITLE = WINGBOX                                                                         
+                  2      ECHO = NONE                                                                             
+                  3      SUBCASE 1                                                                               
+                  4          LOAD = 1                                                                            
+                  5          SPC = 1                                                                             
+                  6          DISP = ALL                                                                          
+                  7          DISPLACEMENT(SORT1,REAL,PUNCH)=ALL                                                  
+ *** USER WARNING MESSAGE 602 (IFP1D)
+     TWO OR MORE OF THE ABOVE CARD TYPES DETECTED WHERE ONLY ONE IS
+     LEGAL.   THE LAST FOUND WILL BE USED.
+                  8          SPCFORCES(SORT1,REAL)=ALL                                                           
+                  9          STRESS(SORT1,REAL,VONMISES,BILIN,PUNCH)=ALL    STRAIN(SORT1,REAL,VON        MISES,BI
+                 10      SUBCASE 2                                                                               
+                 11          LOAD = 2                                                                            
+                 12          SPC = 2                                                                             
+                 13          DISP = ALL                                                                          
+                 14          DISPLACEMENT(SORT1,REAL,PUNCH)=ALL                                                  
+ *** USER WARNING MESSAGE 602 (IFP1D)
+     TWO OR MORE OF THE ABOVE CARD TYPES DETECTED WHERE ONLY ONE IS
+     LEGAL.   THE LAST FOUND WILL BE USED.
+                 15          SPCFORCES(SORT1,REAL)=ALL                                                           
+                 16          STRESS(SORT1,REAL,VONMISES,BILIN,PUNCH)=ALL    STRAIN(SORT1,REAL,VON        MISES,BI
+                 17      SUBCASE 3                                                                               
+                 18          LOAD = 3                                                                            
+                 19          SPC = 3                                                                             
+                 20          DISP = ALL                                                                          
+                 21          DISPLACEMENT(SORT1,REAL,PUNCH)=ALL                                                  
+ *** USER WARNING MESSAGE 602 (IFP1D)
+     TWO OR MORE OF THE ABOVE CARD TYPES DETECTED WHERE ONLY ONE IS
+     LEGAL.   THE LAST FOUND WILL BE USED.
+                 22          SPCFORCES(SORT1,REAL)=ALL                                                           
+                 23          STRESS(SORT1,REAL,VONMISES,BILIN,PUNCH)=ALL    STRAIN(SORT1,REAL,VON        MISES,BI
+                 24                                                                                              
+                 25                                                                                              
+                 26                                                                                              
+                 27      BEGIN BULK                                                                              
+1    WINGBOX                                            **STUDENT EDITION* NOVEMBER  29, 2023  MSC Nastran  3/30/23   PAGE     4
+                                                                                                                                    
+0                                                                                                                                   
+                                        M O D E L   S U M M A R Y          BULK = 0
+                                   ENTRY NAME        NUMBER OF ENTRIES
+                                   ----------        -----------------
+                                       CTRIA3                    73240
+                                        FORCE                      120
+                                         GRID                    35979
+                                         MAT1                        1
+                                       MOMENT                       60
+                                       PSHELL                        1
+                                         SPC1                        9
+
+ ^^^     
+ ^^^ >>> IFP OPERATIONS COMPLETE <<< 
+ ^^^     
+ *** USER INFORMATION MESSAGE 7555 (GMTSTS)
+     FINITE ELEMENT GEOMETRY CHECK RESULTS EXCEED TOLERANCE LEVELS FOR THE FOLLOWING ELEMENTS.  METRIC VALUES THAT EXCEED
+     TEST TOLERANCE LIMITS ARE IDENTIFIED BY ONE OF THE FOLLOWING FLAGS PLACED TO THE RIGHT OF THE METRIC VALUE.
+        "++++" FOR TEST RESULTS EXCEEDING TOLERANCES.  INFORMATIONAL ONLY.  PROBLEM SOLUTION CONTINUES.  (DEFAULT FLAG)
+        "IGNR" FOR TEST RESULTS EXCEEDING TOLERANCES.  INFORMATIONAL ONLY.  PROBLEM SOLUTION CONTINUES.
+        "WARN" FOR TEST RESULTS EXCEEDING TOLERANCES.  INFORMATIONAL ONLY.  PROBLEM SOLUTION CONTINUES.
+        "FAIL" FOR TEST RESULTS EXCEEDING TOLERANCES.  SEVERE ERROR.        PROBLEM SOLUTION TERMINATES.
+     USER ACTION: USE THE GEOMCHECK (EXECUTIVE CONTROL STATEMENT) KEYWORD=VALUE TO CHANGE TOLERANCE VALUES IF DESIRED.
+     A MAXIMUM OF        100 SKEW ANGLE (SA)       TOLERANCE LIMIT VIOLATIONS WILL BE IDENTIFIED BY THE FLAG "++++"
+                             PLACED AFTER THE VALUE METRIC FOR THE TEST.
+     A MAXIMUM OF        100 MAX INT. ANGLE (IA)   TOLERANCE LIMIT VIOLATIONS WILL BE IDENTIFIED BY THE FLAG "++++"
+                             PLACED AFTER THE VALUE METRIC FOR THE TEST.
+1    WINGBOX                                            **STUDENT EDITION* NOVEMBER  29, 2023  MSC Nastran  3/30/23   PAGE     5
+                                                                                                                                    
+0                                                                                                                                   
+     TOLERANCE LIMITS ARE:     SKEW  =  10.00, IA(MAX) = 160.00 (++++ = LIMIT VIOLATED)
+ ELEMENT TYPE    ID          SKEW ANGLE      MAX INT. ANGLE 
+    TRIA3        1743         8.48 ++++       159.71     
+    TRIA3        1943         1.96 ++++       174.29 ++++
+    TRIA3        1947         4.99 ++++       166.10 ++++
+    TRIA3        1951         3.77 ++++       161.80 ++++
+    TRIA3        1952         4.08 ++++       160.35 ++++
+    TRIA3        1953         3.40 ++++       163.55 ++++
+    TRIA3        1957         3.23 ++++       149.16     
+    TRIA3        1958         6.88 ++++        99.78     
+    TRIA3        1964         0.73 ++++       177.44 ++++
+    TRIA3        1966         2.42 ++++       100.26     
+    TRIA3        1967         1.47 ++++        96.65     
+    TRIA3        1968         2.46 ++++        98.72     
+    TRIA3        1969         1.31 ++++        96.29     
+    TRIA3        1970         1.38 ++++        96.38     
+    TRIA3        1971         1.38 ++++        95.56     
+    TRIA3        4703         9.57 ++++       150.65     
+    TRIA3        4704         7.94 ++++       149.22     
+    TRIA3        4709         8.75 ++++       153.12     
+    TRIA3        4710         6.34 ++++       158.99     
+    TRIA3        4711         7.60 ++++       159.33     
+    TRIA3        4712         8.08 ++++       163.75 ++++
+    TRIA3        5217         9.01 ++++        89.00     
+    TRIA3        5225         8.99 ++++       147.78     
+    TRIA3        5226         7.41 ++++       162.27 ++++
+    TRIA3        5227         3.62 ++++       171.64 ++++
+    TRIA3        5230         6.89 ++++       123.79     
+    TRIA3        5233         1.48 ++++       168.71 ++++
+    TRIA3        5234         1.48 ++++       168.70 ++++
+    TRIA3        5235         1.33 ++++       174.14 ++++
+    TRIA3        5238         0.73 ++++       176.48 ++++
+    TRIA3        5239         0.18 ++++       178.48 ++++
+    TRIA3        5240         3.82 ++++       151.25     
+    TRIA3        7015         4.20 ++++       158.84     
+    TRIA3       12915         9.72 ++++       149.69     
+    TRIA3       12918         9.36 ++++       110.68     
+    TRIA3       12919         6.95 ++++       149.38     
+    TRIA3       12920         8.76 ++++       151.93     
+    TRIA3       12921         8.31 ++++       163.24 ++++
+    TRIA3       12922         5.05 ++++       165.83 ++++
+    TRIA3       13323         4.54 ++++       165.80 ++++
+    TRIA3       13324         3.64 ++++       168.61 ++++
+    TRIA3       14732         3.67 ++++       164.94 ++++
+1    WINGBOX                                            **STUDENT EDITION* NOVEMBER  29, 2023  MSC Nastran  3/30/23   PAGE     6
+                                                                                                                                    
+0                                                                                                                                   
+     TOLERANCE LIMITS ARE:     SKEW  =  10.00, IA(MAX) = 160.00 (++++ = LIMIT VIOLATED)
+ ELEMENT TYPE    ID          SKEW ANGLE      MAX INT. ANGLE 
+    TRIA3       19814         7.36 ++++       150.22     
+    TRIA3       20724         5.16 ++++       168.35 ++++
+    TRIA3       31916         8.73 ++++       133.80     
+    TRIA3       32810         8.28 ++++       153.93     
+    TRIA3       32947         6.05 ++++       114.02     
+    TRIA3       33347         6.78 ++++       157.74     
+    TRIA3       33349         6.40 ++++       158.18     
+    TRIA3       33362         6.72 ++++       157.64     
+    TRIA3       34093         6.25 ++++       155.26     
+    TRIA3       34239         7.81 ++++       149.43     
+    TRIA3       34428         5.75 ++++       161.79 ++++
+    TRIA3       34546         6.87 ++++       150.59     
+    TRIA3       34625         9.13 ++++       150.17     
+    TRIA3       34627         7.47 ++++       154.17     
+    TRIA3       34635         7.07 ++++       147.16     
+    TRIA3       34780         3.10 ++++       169.50 ++++
+    TRIA3       34781         8.22 ++++       151.23     
+    TRIA3       34787         9.86 ++++       135.59     
+    TRIA3       34792         8.05 ++++       154.43     
+    TRIA3       34804         3.32 ++++       171.15 ++++
+    TRIA3       34807         8.88 ++++       138.83     
+    TRIA3       34819         7.10 ++++       148.87     
+    TRIA3       34821         9.87 ++++       129.44     
+    TRIA3       34822         8.15 ++++       138.01     
+    TRIA3       34838         7.92 ++++       141.64     
+    TRIA3       34858         8.98 ++++       130.38     
+    TRIA3       34872         5.76 ++++       152.44     
+    TRIA3       34878         8.91 ++++       119.43     
+    TRIA3       34890         7.57 ++++       147.49     
+    TRIA3       34895         7.41 ++++       162.76 ++++
+    TRIA3       34899         5.67 ++++       167.99 ++++
+    TRIA3       34903         8.00 ++++       140.35     
+    TRIA3       34910         5.48 ++++       159.96     
+    TRIA3       34914         4.36 ++++       157.46     
+    TRIA3       34921         9.58 ++++       148.45     
+    TRIA3       34932         8.29 ++++       143.38     
+    TRIA3       34939         7.29 ++++       127.37     
+    TRIA3       34948         8.48 ++++       127.35     
+    TRIA3       34949         5.83 ++++       134.66     
+    TRIA3       34951         9.90 ++++       159.01     
+    TRIA3       34953         6.42 ++++       149.98     
+    TRIA3       34956         8.17 ++++       140.61     
+1    WINGBOX                                            **STUDENT EDITION* NOVEMBER  29, 2023  MSC Nastran  3/30/23   PAGE     7
+                                                                                                                                    
+0                                                                                                                                   
+     TOLERANCE LIMITS ARE:     SKEW  =  10.00, IA(MAX) = 160.00 (++++ = LIMIT VIOLATED)
+ ELEMENT TYPE    ID          SKEW ANGLE      MAX INT. ANGLE 
+    TRIA3       34961         5.51 ++++       148.35     
+    TRIA3       34966         9.69 ++++       131.14     
+    TRIA3       34967         6.40 ++++       157.74     
+    TRIA3       34969         8.64 ++++       131.42     
+    TRIA3       34982         5.19 ++++       162.50 ++++
+    TRIA3       34983         6.54 ++++       151.16     
+    TRIA3       34985         8.29 ++++       136.59     
+    TRIA3       34988         8.07 ++++       129.03     
+    TRIA3       34991         6.79 ++++       140.95     
+    TRIA3       34992         8.66 ++++       131.74     
+    TRIA3       34993         7.33 ++++       142.01     
+    TRIA3       34995         5.73 ++++       146.16     
+    TRIA3       34996         8.34 ++++       137.85     
+    TRIA3       34998         9.41 ++++       160.37 ++++
+    TRIA3       35001         6.43 ++++       151.08     
+    TRIA3       35003         4.92 ++++       153.44     
+1    WINGBOX                                            **STUDENT EDITION* NOVEMBER  29, 2023  MSC Nastran  3/30/23   PAGE     8
+                                                                                                                                    
+0                                                                                                                                   
+
+
+                            E L E M E N T   G E O M E T R Y   T E S T   R E S U L T S   S U M M A R Y
+                                        TOTAL NUMBER OF TIMES TOLERANCES WERE EXCEEDED
+  ELEMENT        SKEW       ASPECT/     MINIMUM      MAXIMUM    SURFACE/FACE    OFFSET     EDGE POINT   EDGE POINT    JACOBIAN  
+    TYPE       ANGLE      TAPER RATIO INTER. ANGLE INTER. ANGLE  WARP FACTOR    RATIO     LENGTH RATIO ANGLE LIMIT  DETERMINANT 
+   TRIA3         224          N/A          N/A            0          N/A          N/A          N/A          N/A          N/A        
+
+         N/A IN THE ABOVE TABLE INDICATES TESTS THAT ARE NOT APPLICABLE TO THE ELEMENT TYPE AND WERE NOT PERFORMED.
+         FOR ALL ELEMENTS WHERE GEOMETRY TEST RESULTS HAVE EXCEEDED TOLERANCES,
+
+         TRIA3    ELEMENT ID    60168 PRODUCED SMALLEST SKEW ANGLE       OF       0.08 (TOLERANCE =       10.00).
+1    WINGBOX                                            **STUDENT EDITION* NOVEMBER  29, 2023  MSC Nastran  3/30/23   PAGE     9
+                                                                                                                                    
+0                                                                                                                                   
+ *** USER INFORMATION MESSAGE 7310 (VECPRN)
+     ORIGIN OF SUPERELEMENT OR MODULE BASIC COORDINATE SYSTEM WILL BE USED AS REFERENCE LOCATION.
+     RESULTANTS ABOUT ORIGIN OF SUPERELEMENT OR MODULE BASIC COORDINATE SYSTEM IN SUPERELEMENT OR MODULE
+     BASIC SYSTEM COORDINATES.
+0                                                  OLOAD    RESULTANT       
+  SUBCASE/    LOAD
+  DAREA ID    TYPE       T1            T2            T3            R1            R2            R3
+0        1     FX    1.886709E+03     ----          ----          ----       1.519993E+03 -2.342098E+03                             
+               FY       ----       0.000000E+00     ----       0.000000E+00     ----       0.000000E+00                             
+               FZ       ----          ----       1.004924E+05  6.419234E+05 -5.366810E+05     ----                                  
+               MX       ----          ----          ----       0.000000E+00     ----          ----                                  
+               MY       ----          ----          ----          ----      -2.598508E+04     ----                                  
+               MZ       ----          ----          ----          ----          ----       0.000000E+00                             
+             TOTALS  1.886709E+03  0.000000E+00  1.004924E+05  6.419234E+05 -5.611461E+05 -2.342098E+03
+0        2     FX    5.457804E+02     ----          ----          ----       4.439876E+02 -6.374272E+02                             
+               FY       ----       0.000000E+00     ----       0.000000E+00     ----       0.000000E+00                             
+               FZ       ----          ----       5.125305E+04  3.158528E+05 -2.653570E+05     ----                                  
+               MX       ----          ----          ----       0.000000E+00     ----          ----                                  
+               MY       ----          ----          ----          ----      -2.423538E+04     ----                                  
+               MZ       ----          ----          ----          ----          ----       0.000000E+00                             
+             TOTALS  5.457804E+02  0.000000E+00  5.125305E+04  3.158528E+05 -2.891484E+05 -6.374272E+02
+0        3     FX    1.954917E+03     ----          ----          ----       1.574997E+03 -2.452007E+03                             
+               FY       ----       0.000000E+00     ----       0.000000E+00     ----       0.000000E+00                             
+               FZ       ----          ----       1.023832E+05  6.544581E+05 -5.471086E+05     ----                                  
+               MX       ----          ----          ----       0.000000E+00     ----          ----                                  
+               MY       ----          ----          ----          ----      -2.602426E+04     ----                                  
+               MZ       ----          ----          ----          ----          ----       0.000000E+00                             
+             TOTALS  1.954917E+03  0.000000E+00  1.023832E+05  6.544581E+05 -5.715579E+05 -2.452007E+03
+1    WINGBOX                                            **STUDENT EDITION* NOVEMBER  29, 2023  MSC Nastran  3/30/23   PAGE    10
+                                                                                                                                    
+0                                                                                                            SUBCASE 1              
+  
+ *** SYSTEM INFORMATION MESSAGE 4159 (DFMSA)
+     THE DECOMPOSITION OF KLL      YIELDS A MAXIMUM MATRIX-TO-FACTOR-DIAGONAL RATIO OF    1.719123E+06
+ ^^^     
+ *** USER INFORMATION MESSAGE 15201 (SUBDMAP SEKRRS)
+      Condition number of stiffness matrix = 2.630425E+10
+ ^^^     
+ *** USER INFORMATION MESSAGE 5293 (SSG3B)
+    FOR DATA BLOCK KLL     
+    LOAD SEQ. NO.             EPSILON              EXTERNAL WORK      EPSILONS LARGER THAN 0.001 ARE FLAGGED WITH ASTERISKS
+                1          1.5267987E-11          1.5854731E+02
+1    WINGBOX                                            **STUDENT EDITION* NOVEMBER  29, 2023  MSC Nastran  3/30/23   PAGE    11
+                                                                                                                                    
+0                                                                                                            SUBCASE 2              
+  
+ *** SYSTEM INFORMATION MESSAGE 4159 (DFMSA)
+     THE DECOMPOSITION OF KLL      YIELDS A MAXIMUM MATRIX-TO-FACTOR-DIAGONAL RATIO OF    1.719123E+06
+ ^^^     
+ *** USER INFORMATION MESSAGE 15201 (SUBDMAP SEKRRS)
+      Condition number of stiffness matrix = 2.630425E+10
+ ^^^     
+ *** USER INFORMATION MESSAGE 5293 (SSG3B)
+    FOR DATA BLOCK KLL     
+    LOAD SEQ. NO.             EPSILON              EXTERNAL WORK      EPSILONS LARGER THAN 0.001 ARE FLAGGED WITH ASTERISKS
+                2          5.3285573E-11          5.6162096E+01
+1    WINGBOX                                            **STUDENT EDITION* NOVEMBER  29, 2023  MSC Nastran  3/30/23   PAGE    12
+                                                                                                                                    
+0                                                                                                            SUBCASE 3              
+  
+ *** SYSTEM INFORMATION MESSAGE 4159 (DFMSA)
+     THE DECOMPOSITION OF KLL      YIELDS A MAXIMUM MATRIX-TO-FACTOR-DIAGONAL RATIO OF    1.719123E+06
+ ^^^     
+ *** USER INFORMATION MESSAGE 15201 (SUBDMAP SEKRRS)
+      Condition number of stiffness matrix = 2.630425E+10
+ ^^^     
+ *** USER INFORMATION MESSAGE 5293 (SSG3B)
+    FOR DATA BLOCK KLL     
+    LOAD SEQ. NO.             EPSILON              EXTERNAL WORK      EPSILONS LARGER THAN 0.001 ARE FLAGGED WITH ASTERISKS
+                3         -7.5384686E-11          1.6393852E+02
+1    WINGBOX                                            **STUDENT EDITION* NOVEMBER  29, 2023  MSC Nastran  3/30/23   PAGE    13
+                                                                                                                                    
+0                                                                                                                                   
+ *** USER INFORMATION MESSAGE 7310 (VECPRN)
+     ORIGIN OF SUPERELEMENT OR MODULE BASIC COORDINATE SYSTEM WILL BE USED AS REFERENCE LOCATION.
+     RESULTANTS ABOUT ORIGIN OF SUPERELEMENT OR MODULE BASIC COORDINATE SYSTEM IN SUPERELEMENT OR MODULE
+     BASIC SYSTEM COORDINATES.
+0                                                  SPCFORCE RESULTANT       
+  SUBCASE/    LOAD
+  DAREA ID    TYPE       T1            T2            T3            R1            R2            R3
+0        1     FX   -1.886709E+03     ----          ----          ----       2.049005E+05 -5.380642E-12                             
+               FY       ----      -2.864763E-07     ----      -6.419234E+05     ----       2.342098E+03                             
+               FZ       ----          ----      -1.004924E+05  1.185091E-12  3.558555E+05     ----                                  
+               MX       ----          ----          ----       0.000000E+00     ----          ----                                  
+               MY       ----          ----          ----          ----       3.899856E+02     ----                                  
+               MZ       ----          ----          ----          ----          ----       0.000000E+00                             
+             TOTALS -1.886709E+03 -2.864763E-07 -1.004924E+05 -6.419234E+05  5.611461E+05  2.342098E+03
+0        2     FX   -5.457804E+02     ----          ----          ----       1.043697E+05 -2.725217E-12                             
+               FY       ----      -1.340377E-07     ----      -3.158528E+05     ----       6.374272E+02                             
+               FZ       ----          ----      -5.125305E+04  5.921538E-13  1.845710E+05     ----                                  
+               MX       ----          ----          ----       0.000000E+00     ----          ----                                  
+               MY       ----          ----          ----          ----       2.077440E+02     ----                                  
+               MZ       ----          ----          ----          ----          ----       0.000000E+00                             
+             TOTALS -5.457804E+02 -1.340377E-07 -5.125305E+04 -3.158528E+05  2.891484E+05  6.374272E+02
+0        3     FX   -1.954917E+03     ----          ----          ----       2.087464E+05 -5.482244E-12                             
+               FY       ----      -2.930465E-07     ----      -6.544581E+05     ----       2.452007E+03                             
+               FZ       ----          ----      -1.023832E+05  1.207970E-12  3.624149E+05     ----                                  
+               MX       ----          ----          ----       0.000000E+00     ----          ----                                  
+               MY       ----          ----          ----          ----       3.966578E+02     ----                                  
+               MZ       ----          ----          ----          ----          ----       0.000000E+00                             
+             TOTALS -1.954917E+03 -2.930465E-07 -1.023832E+05 -6.544581E+05  5.715579E+05  2.452007E+03
+1    WINGBOX                                            **STUDENT EDITION* NOVEMBER  29, 2023  MSC Nastran  3/30/23   PAGE    14
+                                                                                                                                    
+0                                                                                                            SUBCASE 1              
+ 
+                               F O R C E S   O F   S I N G L E - P O I N T   C O N S T R A I N T
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+           288      G     -3.402375E+03   2.274132E+04   2.212998E+03   0.0            0.0            0.0
+           289      G      2.198747E+04   7.184732E+04  -9.480617E+03   0.0            1.608928E+01   0.0
+           297      G     -2.733602E+04  -8.440606E+04  -2.346708E+04   0.0            8.344572E+00   0.0
+           298      G     -4.882120E+02  -2.987097E+04  -1.873150E+03   0.0            0.0            0.0
+           344      G      1.140730E+04   4.269583E+04   8.360776E+02   0.0            0.0            0.0
+           345      G      1.135136E+04   4.387227E+04   9.769180E+02   0.0            0.0            0.0
+           346      G      4.364456E+04   9.256864E+04  -1.234403E+04   0.0            3.465233E+02   0.0
+           347      G     -4.489172E+04  -1.195196E+05  -2.563352E+04   0.0            1.902853E+01   0.0
+           348      G     -2.020273E+04  -6.677074E+04  -7.411248E+03   0.0            0.0            0.0
+           349      G     -1.684342E+04  -6.028223E+04  -7.109422E+03   0.0            0.0            0.0
+           350      G     -1.601413E+04  -5.650247E+04  -6.387262E+03   0.0            0.0            0.0
+           351      G     -1.580787E+04  -5.430574E+04  -5.863420E+03   0.0            0.0            0.0
+           352      G     -1.623956E+04  -5.393640E+04  -5.750431E+03   0.0            0.0            0.0
+           353      G      1.212761E+04   4.617510E+04   7.271236E+02   0.0            0.0            0.0
+           354      G      1.287780E+04   4.840250E+04   4.037452E+02   0.0            0.0            0.0
+           355      G      1.359916E+04   5.033198E+04   5.416430E+01   0.0            0.0            0.0
+           356      G      1.466683E+04   5.210923E+04  -1.989873E+02   0.0            0.0            0.0
+           357      G      1.767723E+04   5.485002E+04  -1.842596E+02   0.0            0.0            0.0
+1    WINGBOX                                            **STUDENT EDITION* NOVEMBER  29, 2023  MSC Nastran  3/30/23   PAGE    15
+                                                                                                                                    
+0                                                                                                            SUBCASE 2              
+ 
+                               F O R C E S   O F   S I N G L E - P O I N T   C O N S T R A I N T
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+           288      G     -1.627317E+03   1.071375E+04   9.168976E+02   0.0            0.0            0.0
+           289      G      1.139908E+04   3.595486E+04  -5.209804E+03   0.0            8.272964E+00   0.0
+           297      G     -1.403860E+04  -4.216206E+04  -1.209279E+04   0.0            4.121299E+00   0.0
+           298      G     -2.798577E+02  -1.426616E+04  -1.000496E+03   0.0            0.0            0.0
+           344      G      6.023448E+03   2.108347E+04   2.680553E+02   0.0            0.0            0.0
+           345      G      5.910207E+03   2.158037E+04   3.880623E+02   0.0            0.0            0.0
+           346      G      2.200878E+04   4.559421E+04  -6.063598E+03   0.0            1.864681E+02   0.0
+           347      G     -2.261761E+04  -5.868225E+04  -1.253115E+04   0.0            8.881590E+00   0.0
+           348      G     -1.023163E+04  -3.273954E+04  -3.622965E+03   0.0            0.0            0.0
+           349      G     -8.563301E+03  -2.957659E+04  -3.495342E+03   0.0            0.0            0.0
+           350      G     -8.175164E+03  -2.775614E+04  -3.153694E+03   0.0            0.0            0.0
+           351      G     -8.117637E+03  -2.672945E+04  -2.913914E+03   0.0            0.0            0.0
+           352      G     -8.417893E+03  -2.664713E+04  -2.905751E+03   0.0            0.0            0.0
+           353      G      6.242766E+03   2.267891E+04   2.888449E+02   0.0            0.0            0.0
+           354      G      6.587116E+03   2.375649E+04   1.457295E+02   0.0            0.0            0.0
+           355      G      6.940481E+03   2.468705E+04  -1.412493E+01   0.0            0.0            0.0
+           356      G      7.467032E+03   2.555535E+04  -1.291440E+02   0.0            0.0            0.0
+           357      G      8.944314E+03   2.695487E+04  -1.278606E+02   0.0            0.0            0.0
+1    WINGBOX                                            **STUDENT EDITION* NOVEMBER  29, 2023  MSC Nastran  3/30/23   PAGE    16
+                                                                                                                                    
+0                                                                                                            SUBCASE 3              
+ 
+                               F O R C E S   O F   S I N G L E - P O I N T   C O N S T R A I N T
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+           288      G     -3.471368E+03   2.320787E+04   2.263766E+03   0.0            0.0            0.0
+           289      G      2.239235E+04   7.322751E+04  -9.643146E+03   0.0            1.639047E+01   0.0
+           297      G     -2.784609E+04  -8.602651E+04  -2.390258E+04   0.0            8.505055E+00   0.0
+           298      G     -4.965997E+02  -3.046830E+04  -1.906221E+03   0.0            0.0            0.0
+           344      G      1.161240E+04   4.352742E+04   8.585918E+02   0.0            0.0            0.0
+           345      G      1.155891E+04   4.472996E+04   1.000044E+03   0.0            0.0            0.0
+           346      G      4.446993E+04   9.437085E+04  -1.258573E+04   0.0            3.523398E+02   0.0
+           347      G     -4.574571E+04  -1.218634E+05  -2.614041E+04   0.0            1.942250E+01   0.0
+           348      G     -2.058505E+04  -6.808099E+04  -7.557467E+03   0.0            0.0            0.0
+           349      G     -1.716122E+04  -6.146377E+04  -7.248525E+03   0.0            0.0            0.0
+           350      G     -1.631513E+04  -5.760812E+04  -6.511595E+03   0.0            0.0            0.0
+           351      G     -1.610314E+04  -5.536582E+04  -5.976746E+03   0.0            0.0            0.0
+           352      G     -1.653972E+04  -5.498466E+04  -5.859579E+03   0.0            0.0            0.0
+           353      G      1.235238E+04   4.707892E+04   7.443204E+02   0.0            0.0            0.0
+           354      G      1.311817E+04   4.935023E+04   4.138996E+02   0.0            0.0            0.0
+           355      G      1.385333E+04   5.131787E+04   5.694820E+01   0.0            0.0            0.0
+           356      G      1.494143E+04   5.312966E+04  -2.016360E+02   0.0            0.0            0.0
+           357      G      1.801021E+04   5.592129E+04  -1.871102E+02   0.0            0.0            0.0
+1    WINGBOX                                            **STUDENT EDITION* NOVEMBER  29, 2023  MSC Nastran  3/30/23   PAGE    17
+                                                                                                                                    
+0                                                                                                                                   
+ * * * *  D B D I C T   P R I N T  * * * *      SUBDMAP = PRTSUM  ,  DMAP STATEMENT NO.     74
+
+
+
+0                                   * * * *  A N A L Y S I S  S U M M A R Y  T A B L E  * * * *
+0 SEID  PEID PROJ VERS APRCH      SEMG SEMR SEKR SELG SELR MODES DYNRED SOLLIN SOLNL LOOPID DESIGN CYCLE SENSITIVITY
+ -------------------------------------------------------------------------------------------------------------------
+     0     0    1    1 '        '    T    T    T    T    T     F      F      T     F     -1            0           F
+0SEID = SUPERELEMENT ID.
+ PEID = PRIMARY SUPERELEMENT ID OF IMAGE SUPERELEMENT.
+ PROJ = PROJECT ID NUMBER.
+ VERS = VERSION ID.
+ APRCH = BLANK FOR STRUCTURAL ANALYSIS.  HEAT FOR HEAT TRANSFER ANALYSIS.
+ SEMG = STIFFNESS AND MASS MATRIX GENERATION STEP.
+ SEMR = MASS MATRIX REDUCTION STEP (INCLUDES EIGENVALUE SOLUTION FOR MODES).
+ SEKR = STIFFNESS MATRIX REDUCTION STEP.
+ SELG = LOAD MATRIX GENERATION STEP.
+ SELR = LOAD MATRIX REDUCTION STEP. 
+ MODES = T (TRUE) IF NORMAL MODES OR BUCKLING MODES CALCULATED.
+ DYNRED = T (TRUE) MEANS GENERALIZED DYNAMIC AND/OR COMPONENT MODE REDUCTION PERFORMED.
+ SOLLIN = T (TRUE) IF LINEAR SOLUTION EXISTS IN DATABASE.
+ LOOPID = THE LAST LOOPID VALUE USED IN THE NONLINEAR ANALYSIS.  USEFUL FOR RESTARTS.
+ SOLNL = T (TRUE) IF NONLINEAR SOLUTION EXISTS IN DATABASE.
+ DESIGN CYCLE = THE LAST DESIGN CYCLE (ONLY VALID IN OPTIMIZATION).
+ SENSITIVITY = SENSITIVITY MATRIX GENERATION FLAG.
+ 
+ No PARAM values were set in the Control File.
+ 
+1                                        * * * END OF JOB * * *
+ 
+ 
+ No Symbolic Replacement variables or values were specified.
+
