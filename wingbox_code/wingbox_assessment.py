@@ -6,7 +6,8 @@ from .geometry.wingbox import WingBox
 from .analysis_tools.avl_analysis import AvlAnalysis
 from .format.tk_warn import type_warning, material_validation
 from .analysis_tools.femfilegenerator import FEMFileGenerator
-from .analysis_tools.get_plots_reactions import get_plots_reactions
+from .analysis_tools.get_plots import get_plots
+from .analysis_tools.get_reactions import get_reactions
 import os
 import shutil
 import matplotlib.pyplot as plt
@@ -786,7 +787,8 @@ class WingBoxAssessment(GeomBase):
 
         # Getting plots and reactions, and saving in the appropriate output folder.
         load_cases = self.FEMFile.cases
-        get_plots_reactions(load_cases)
+        get_plots(load_cases)
+        get_reactions()
 
         print(f"FEM Analysis has finished running. Check output in the 'output_data' folder.")
 
