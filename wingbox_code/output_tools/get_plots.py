@@ -20,5 +20,5 @@ def get_plots(load_cases):
             plt.xlabel('y [m]')
             plt.ylabel(ids[id] + ' [N]')
             path_to_save = os.path.join(os.getcwd(),
-                                        r'wingbox_code\output_data\avl_plots\ ' + ids[id] + '_case_' + str(idx + 1))
+                                        r'wingbox_code\output_data\avl_plots\ ' + ids[id] + '_SUBCASE' + str(idx + 1))
             plt.savefig(path_to_save)

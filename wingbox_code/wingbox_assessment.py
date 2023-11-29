@@ -8,9 +8,11 @@ from .format.tk_warn import type_warning, material_validation
 from .analysis_tools.femfilegenerator import FEMFileGenerator
 from .output_tools.get_plots import get_plots
 from .output_tools.get_reactions import get_reactions
+from .output_tools.colormap_results import Colormap
+from parapy.lib.fem.future.mesh.visualization import DeformedGrid
+from random import random
 import os
 import shutil
-import matplotlib.pyplot as plt
 import subprocess
 import time
 import psutil
@@ -31,9 +33,10 @@ def bdf_file_cases(file_path, case_settings):
                 "    LOAD = ",
                 "    SPC = ",
                 "    DISP = ALL",
-                "    DISPLACEMENT(SORT1,REAL)=ALL",
+                "    DISPLACEMENT(SORT1,REAL,PUNCH)=ALL",
                 "    SPCFORCES(SORT1,REAL)=ALL",
-                "    STRESS(SORT1,REAL,VONMISES,BILIN)=ALL"]
+                "    STRESS(SORT1,REAL,VONMISES,BILIN,PUNCH)=ALL"
+                "    STRAIN(SORT1,REAL,VONMISES,BILIN,PUNCH)=ALL"]
 
     with open(file_path, 'r+') as file:
         content = file.read()  # Read the entire content into a variable
@@ -762,24 +765,18 @@ class WingBoxAssessment(GeomBase):
         source_files = {
             'f04': 'wingbox_bulkdata.f04',
             'f06': 'wingbox_bulkdata.f06',
-            'log': 'wingbox_bulkdata.log'
+            'log': 'wingbox_bulkdata.log',
+            'pch': 'wingbox_bulkdata.pch'
         }
 
         # Define destination directories for NASTRAN files
-        bdf_files_path = os.path.join(os.path.dirname(__file__), 'bdf_files')
         output_data_path = os.path.join(os.path.dirname(__file__), 'output_data')
+        raw_NASTRAN_output_path = os.path.join(os.path.dirname(__file__), r'output_data\raw_NASTRAN_output')
 
-        # Copying NASTRAN files to respective directories.
+        # Copying NASTRAN files to the output data directory.
         for file_key, file_name in source_files.items():
             source_file_path = os.path.join(os.getcwd(), file_name)
-
-            if file_key == 'f06':
-                shutil.copy2(source_file_path, os.path.join(bdf_files_path, os.path.basename(source_file_path)))
-                shutil.copy2(source_file_path, os.path.join(output_data_path, os.path.basename(source_file_path)))
-            else:
-                dest_file_path = os.path.join(bdf_files_path, os.path.basename(source_file_path))
-                shutil.copy2(source_file_path, dest_file_path)
-
+            shutil.copy2(source_file_path, os.path.join(raw_NASTRAN_output_path, os.path.basename(source_file_path)))
             os.remove(source_file_path)
 
         # Creating STEP file of the geometry in the folder.
@@ -793,6 +790,11 @@ class WingBoxAssessment(GeomBase):
         print(f"FEM Analysis has finished running. Check output in the 'output_data' folder.")
 
         return None
+
+    @Part
+    def colormaps(self):
+        return Colormap(mesh=self.FEMFile.mesh,
+                        magnification_factor=1e-6)
 
 
 if __name__ == '__main__':

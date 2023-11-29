@@ -3,8 +3,8 @@ import os
 
 def get_reactions():
     # Getting general forces and reactions for each case.
-    f06_loc = os.path.join(os.getcwd(), r'wingbox_code\output_data\wingbox_bulkdata.f06')
-    react_loc = r'wingbox_code\output_data\react_forces_moms\ '
+    f06_loc = os.path.join(os.getcwd(), r'wingbox_code\output_data\raw_NASTRAN_output\wingbox_bulkdata.f06')
+    react_loc = r'wingbox_code\output_data\categorized_outputs\reactions\ '
     totals_lst = []
 
     with open(f06_loc, 'r') as file:
@@ -18,7 +18,7 @@ def get_reactions():
         values = react.split()
         label = values[0].strip()
         values = [float(val) for val in values[1:]]
-        write_path = os.path.join(os.getcwd(), react_loc + 'react_SUBCASE' + str(idx + 1) + '.txt')
+        write_path = os.path.join(os.getcwd(), react_loc + 'reactions_SUBCASE' + str(idx + 1) + '.txt')
 
         with open(write_path, 'w') as file:
             file.write('THE TOTAL REACTION FORCES OF THE STRUCTURE OF THE WING ARE:\n')
