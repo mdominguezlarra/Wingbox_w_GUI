@@ -35,7 +35,7 @@ def bdf_file_cases(file_path, case_settings):
                 "    DISP = ALL",
                 "    DISPLACEMENT(SORT1,REAL,PUNCH)=ALL",
                 "    SPCFORCES(SORT1,REAL)=ALL",
-                "    STRESS(SORT1,REAL,VONMISES,BILIN,PUNCH)=ALL"
+                "    STRESS(SORT1,REAL,VONMISES,BILIN,PUNCH)=ALL",
                 "    STRAIN(SORT1,REAL,VONMISES,BILIN,PUNCH)=ALL"]
 
     with open(file_path, 'r+') as file:

@@ -157,7 +157,7 @@ twist = [incidence] + appender(df_i, 10, 'twists', (float, int))
 
 # Airfoil Placement
 
-airfoil_names_unordered = [str(airfoil) for airfoil in appender(df_i, 19, 'airfoil names', (str, int))]
+airfoil_names_unordered = [str(airfoil) if len(str(airfoil)) >= 4 else '00' + str(airfoil) for airfoil in appender(df_i, 19, 'airfoil names', (str, int))]
 airfoil_sections_unordered = appender(df_i, 20, 'airfoil positions', (float, int))
 
 airfoil_names = [x for _, x in sorted(zip(airfoil_sections_unordered, airfoil_names_unordered))]
