@@ -196,7 +196,8 @@ class WingBox(GeomBase):
 
     @Attribute
     def STEP_file(self):
-        return STEPWriter(nodes=self.STEP_node_list, schema='AP203')
+        return STEPWriter(nodes=self.STEP_node_list,
+                          schema='AP203')
 
 
 if __name__ == '__main__':

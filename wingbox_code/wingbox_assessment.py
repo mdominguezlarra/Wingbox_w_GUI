@@ -9,14 +9,19 @@ from .analysis_tools.femfilegenerator import FEMFileGenerator
 from .output_tools.get_plots import get_plots
 from .output_tools.get_reactions import get_reactions
 from .output_tools.colormap_results import Colormap
-from .output_tools.punch_interpreter import punch_interpreter
-from parapy.lib.fem.future.mesh.visualization import DeformedGrid
-from random import random
+from .output_tools.punch_interpreter import read_punch, punch_interpreter
 import os
 import shutil
 import subprocess
 import time
 import psutil
+
+
+def get_disp_dict():
+    punch_path = os.path.join(os.getcwd(), r'wingbox_code\output_data\raw_NASTRAN_output\wingbox_bulkdata.pch')
+    disp_dict, _, _ = read_punch(punch_path)
+
+    return disp_dict
 
 
 def check_nastran_running():
@@ -137,6 +142,7 @@ class WingBoxAssessment(GeomBase):
     bcs = Input(validator=IsInstance(list))
 
     # SPECIAL VALIDATORS #
+
 
     @spans.validator
     def spans(self, span):
@@ -735,6 +741,7 @@ class WingBoxAssessment(GeomBase):
                                 max_elem_size=self.max_elem_size,
                                 bcs=self.bcs)
 
+
     @Attribute
     def FEMAnalysis(self):
         """ Defines the .bdf file, run it using NASTRAN and sort output data. """
@@ -798,6 +805,7 @@ class WingBoxAssessment(GeomBase):
     @Part
     def colormaps(self):
         return Colormap(mesh=self.FEMFile.mesh,
+                        dictn=get_disp_dict(),
                         magnification_factor=1e-6)
 
 
