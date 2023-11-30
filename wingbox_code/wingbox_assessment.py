@@ -9,6 +9,7 @@ from .analysis_tools.femfilegenerator import FEMFileGenerator
 from .output_tools.get_plots import get_plots
 from .output_tools.get_reactions import get_reactions
 from .output_tools.colormap_results import Colormap
+from .output_tools.punch_interpreter import punch_interpreter
 from parapy.lib.fem.future.mesh.visualization import DeformedGrid
 from random import random
 import os
@@ -786,6 +787,9 @@ class WingBoxAssessment(GeomBase):
         load_cases = self.FEMFile.cases
         get_plots(load_cases)
         get_reactions()
+
+        # Interpreting punch file.
+        punch_interpreter(self.FEMFile.mesh.grid.nodes)
 
         print(f"FEM Analysis has finished running. Check output in the 'output_data' folder.")
 
